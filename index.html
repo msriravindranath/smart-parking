@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Parking Booking System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🚗 Smart Parking Booking System</h1>
+
+<select id="placeFilter">
+    <option value="All">All Places</option>
+</select>
+
+<p id="message"></p>
+
+<!-- BOOKING FORM -->
+<div id="bookingForm" style="display:none; margin-top:20px;">
+    <h3>Complete Booking</h3>
+
+    <form 
+        id="bookingFormElement"
+        method="POST"
+        target="hiddenFrame"
+    >
+        <input type="hidden" name="slotId" id="formSlotId">
+
+        <input
+            type="text"
+            name="name"
+            id="userName"
+            placeholder="Enter your name"
+            required
+        ><br><br>
+
+        <input
+            type="time"
+            name="time"
+            id="reserveTime"
+            required
+        ><br><br>
+
+        <button type="submit">Confirm Booking</button>
+    </form>
+
+    <iframe 
+  name="hiddenFrame"
+  style="display:none;"
+  onload="bookingCompleted()"
+  
+></iframe>
+
+</div>
+
+<div id="slots"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
