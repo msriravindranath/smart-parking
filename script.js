@@ -2,7 +2,7 @@
 
 // READ from Google Sheet (CSV)
 const sheetURL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS29RQ3ruKvonaTYjkci1Qg7-JuWfQamcW9i_yQIJZJxNoJOT6Y3Mp088gctObbK-nwlS3b84Wd3oEb/pub?output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
 // WRITE to Google Apps Script
 const apiURL =
@@ -16,27 +16,19 @@ let selectedSlot = null;
 fetch(sheetURL)
   .then(res => res.text())
   .then(csv => {
-    const rows = csv.split("\n").slice(1);
-    const places = new Set();
+    const rows = csv.split("\n");
+    if (rows.length < 2) return;
 
-    allSlots = [];
+    const cells = rows[1].split(",");
 
-    rows.forEach(row => {
-      if (!row.trim()) return;
+    allSlots = [
+      { id: "Slot 1", area: "Main Parking", status: cells[1]?.trim() },
+      { id: "Slot 2", area: "Main Parking", status: cells[2]?.trim() },
+      { id: "Slot 3", area: "Main Parking", status: cells[3]?.trim() },
+      { id: "Slot 4", area: "Main Parking", status: cells[4]?.trim() }
+    ];
 
-      const cells = row.split(",");
-
-      const slot = {
-        id: cells[0]?.trim(),
-        area: cells[1]?.trim(),
-        status: cells[2]?.trim()
-      };
-
-      allSlots.push(slot);
-      places.add(slot.area);
-    });
-
-    populateDropdown([...places]);
+    populateDropdown(["Main Parking"]);
     displaySlots(allSlots);
   });
 
@@ -70,7 +62,11 @@ function displaySlots(slots) {
 
   slots.forEach(slot => {
     const div = document.createElement("div");
-    div.className = `slot ${slot.status.toLowerCase()}`;
+    const statusClass =
+  slot.status === "EMPTY" ? "available" : "occupied";
+
+div.className = `slot ${statusClass}`;
+
 
     div.innerHTML = `
       <h3>${slot.id}</h3>
