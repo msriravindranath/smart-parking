@@ -6,7 +6,7 @@ const sheetURL =
 
 // WRITE Google Apps Script (booking)
 const apiURL =
-  "https://script.google.com/macros/s/AKfycbzKV2VN5xWNb3esWUBLBCnyXa5-iO-zBPDkhQ8AF0n947qwawG6wZJPlMKczjJTngx0XQ/exec";
+  "https://script.google.com/macros/s/AKfycbyOHstVv14VmSPoVG4RKv1AAqdne49lo_D9m9_0ivU_3mIbyv5NiDsFnuqL6yCIYpefaw/exec";
 
 // ========= STATE =========
 let allSlots = [];
