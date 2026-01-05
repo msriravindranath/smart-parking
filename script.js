@@ -11,50 +11,60 @@ const apiURL =
 // ========= STATE =========
 let allSlots = [];
 let selectedSlotId = null;
+let currentPlace = null;
 
-// ========= LOAD DATA =========
-fetch(sheetURL)
-  .then(res => res.text())
-  .then(csv => {
-    const rows = csv.trim().split("\n");
-    if (rows.length < 2) return;
+// ========= LOAD SLOT DATA =========
+function loadSlotData() {
+  fetch(sheetURL)
+    .then(res => res.text())
+    .then(csv => {
+      const rows = csv.trim().split("\n");
+      if (rows.length < 2) return;
 
-    const cells = rows[1].split(",");
+      const cells = rows[1].split(",");
 
-    allSlots = [
-      {
-        id: "Slot 1",
-        area: cells[0],
-        status: cells[1],
-        booked: cells[2]
-      },
-      {
-        id: "Slot 2",
-        area: cells[0],
-        status: cells[3],
-        booked: cells[4]
-      },
-      {
-        id: "Slot 3",
-        area: cells[0],
-        status: cells[5],
-        booked: cells[6]
-      },
-      {
-        id: "Slot 4",
-        area: cells[0],
-        status: cells[7],
-        booked: cells[8]
-      }
-    ];
+      currentPlace = cells[0];
 
-    populateDropdown([cells[0]]);
-    displaySlots(allSlots);
-  });
+      allSlots = [
+        {
+          id: "Slot 1",
+          area: currentPlace,
+          status: cells[1],
+          booked: cells[2]
+        },
+        {
+          id: "Slot 2",
+          area: currentPlace,
+          status: cells[3],
+          booked: cells[4]
+        },
+        {
+          id: "Slot 3",
+          area: currentPlace,
+          status: cells[5],
+          booked: cells[6]
+        },
+        {
+          id: "Slot 4",
+          area: currentPlace,
+          status: cells[7],
+          booked: cells[8]
+        }
+      ];
+
+      populateDropdown([currentPlace]);
+      displaySlots(allSlots);
+    })
+    .catch(err => console.error("CSV fetch error:", err));
+}
 
 // ========= DROPDOWN =========
 function populateDropdown(places) {
   const dropdown = document.getElementById("placeFilter");
+
+  // prevent re-adding options on every refresh
+  if (dropdown.options.length > 1) return;
+
   dropdown.innerHTML = `<option value="All">All Places</option>`;
 
   places.forEach(place => {
@@ -122,10 +132,16 @@ function reserveSlot(slotId) {
 function bookingCompleted() {
   alert("✅ Booking confirmed!");
 
-  // Update UI immediately (frontend)
+  // Immediate frontend update
   const slot = allSlots.find(s => s.id === selectedSlotId);
   if (slot) slot.booked = "YES";
 
   document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
 }
+
+// ========= INITIAL LOAD =========
+loadSlotData();
+
+// ========= AUTO REFRESH (EVERY 15 SECONDS) =========
+setInterval(loadSlotData, 15000);
