@@ -3,7 +3,7 @@ const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
 const apiURL =
-  "https://script.google.com/macros/s/AKfycbzKV2VN5xWNb3esWUBLBCnyXa5-iO-zBPDkhQ8AF0n947qwawG6wZJPlMKczjJTngx0XQ/exec";
+  "https://script.google.com/macros/s/AKfycbynoilwN95z-gLtS5sI0nGKhwxUMrlmjRVPGaunL4hmo04RdcOG5K_SqmzPyw3C0mPHjg/exec";
 
 // ========= STATE =========
 let allSlots = [];
