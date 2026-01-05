@@ -1,34 +1,54 @@
 // ========= CONFIG =========
 
-// READ from Google Sheet (CSV)
+// READ Google Sheet (CSV)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-// WRITE to Google Apps Script
+// WRITE Google Apps Script (booking)
 const apiURL =
-  "https://script.google.com/macros/s/AKfycbypw7EME0B1Nh5t7_6gG1ONymR1KG_W7LnwAaK1BSxShdE4zAdvzy6ClSytUQofuJU0vg/exec";
+  "https://script.google.com/macros/s/AKfycbzKV2VN5xWNb3esWUBLBCnyXa5-iO-zBPDkhQ8AF0n947qwawG6wZJPlMKczjJTngx0XQ/exec";
 
 // ========= STATE =========
 let allSlots = [];
-let selectedSlot = null;
+let selectedSlotId = null;
 
 // ========= LOAD DATA =========
 fetch(sheetURL)
   .then(res => res.text())
   .then(csv => {
-    const rows = csv.split("\n");
+    const rows = csv.trim().split("\n");
     if (rows.length < 2) return;
 
     const cells = rows[1].split(",");
 
     allSlots = [
-      { id: "Slot 1", area: "Main Parking", status: cells[1]?.trim() },
-      { id: "Slot 2", area: "Main Parking", status: cells[2]?.trim() },
-      { id: "Slot 3", area: "Main Parking", status: cells[3]?.trim() },
-      { id: "Slot 4", area: "Main Parking", status: cells[4]?.trim() }
+      {
+        id: "Slot 1",
+        area: cells[0],
+        status: cells[1],
+        booked: cells[2]
+      },
+      {
+        id: "Slot 2",
+        area: cells[0],
+        status: cells[3],
+        booked: cells[4]
+      },
+      {
+        id: "Slot 3",
+        area: cells[0],
+        status: cells[5],
+        booked: cells[6]
+      },
+      {
+        id: "Slot 4",
+        area: cells[0],
+        status: cells[7],
+        booked: cells[8]
+      }
     ];
 
-    populateDropdown(["Main Parking"]);
+    populateDropdown([cells[0]]);
     displaySlots(allSlots);
   });
 
@@ -62,18 +82,26 @@ function displaySlots(slots) {
 
   slots.forEach(slot => {
     const div = document.createElement("div");
-    const statusClass =
-  slot.status === "EMPTY" ? "available" : "occupied";
 
-div.className = `slot ${statusClass}`;
+    let statusClass = "available";
+    let statusText = "Available";
 
+    if (slot.booked === "YES") {
+      statusClass = "reserved";
+      statusText = "Reserved";
+    } else if (slot.status === "FILLED") {
+      statusClass = "occupied";
+      statusText = "Occupied";
+    }
+
+    div.className = `slot ${statusClass}`;
 
     div.innerHTML = `
       <h3>${slot.id}</h3>
       <p>${slot.area}</p>
-      <p>Status: ${slot.status}</p>
+      <p>Status: ${statusText}</p>
       ${
-        slot.status === "Available"
+        statusClass === "available"
           ? `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`
           : ""
       }
@@ -85,29 +113,19 @@ div.className = `slot ${statusClass}`;
 
 // ========= RESERVE =========
 function reserveSlot(slotId) {
-  selectedSlot = allSlots.find(s => s.id === slotId);
-
-  // show booking form
-  document.getElementById("formSlotId").value = selectedSlot.id;
+  selectedSlotId = slotId;
+  document.getElementById("formSlotId").value = slotId;
   document.getElementById("bookingForm").style.display = "block";
-
-  // store selected slot id for UI update
-  window.currentSlotId = slotId;
 }
 
+// ========= BOOKING CALLBACK =========
 function bookingCompleted() {
-  alert("✅ Booking confirmed successfully!");
+  alert("✅ Booking confirmed!");
 
-  // update slot status locally (frontend only)
-  const slot = allSlots.find(s => s.id === window.currentSlotId);
-  if (slot) {
-    slot.status = "Reserved";
-  }
+  // Update UI immediately (frontend)
+  const slot = allSlots.find(s => s.id === selectedSlotId);
+  if (slot) slot.booked = "YES";
 
-  // hide booking form
   document.getElementById("bookingForm").style.display = "none";
-
-  // re-render slots to update color and button
   displaySlots(allSlots);
 }
-
