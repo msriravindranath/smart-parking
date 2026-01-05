@@ -13,7 +13,7 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = null;
 
-// 🔒 Stabilization memory
+// Stabilization memory
 let stableState = {};
 let changeCounter = {};
 
@@ -37,6 +37,7 @@ function loadSlotData() {
 
       incoming.forEach(slot => {
         const key = slot.id;
+
         const rawState =
           slot.booked === "YES"
             ? "reserved"
@@ -66,7 +67,8 @@ function loadSlotData() {
       allSlots = incoming;
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
-    });
+    })
+    .catch(err => console.error("CSV error:", err));
 }
 
 // ========= DROPDOWN =========
@@ -120,14 +122,40 @@ function reserveSlot(slotId) {
   document.getElementById("bookingForm").style.display = "block";
 }
 
+// ========= SUBMIT BOOKING (BACKEND) =========
+function submitBooking(event) {
+  event.preventDefault();
+
+  if (!selectedSlotId) {
+    alert("No slot selected");
+    return;
+  }
+
+  fetch(apiURL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ slotId: selectedSlotId })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        bookingCompleted();
+      } else {
+        alert("❌ Booking failed");
+        console.error(data);
+      }
+    })
+    .catch(err => {
+      console.error("Booking error:", err);
+      alert("❌ Backend error");
+    });
+}
+
 // ========= BOOKING CALLBACK =========
 function bookingCompleted() {
   alert("✅ Booking confirmed!");
 
-  const slot = allSlots.find(s => s.id === selectedSlotId);
-  if (slot) {
-    stableState[selectedSlotId] = "reserved";
-  }
+  stableState[selectedSlotId] = "reserved";
 
   document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
@@ -135,4 +163,4 @@ function bookingCompleted() {
 
 // ========= INIT =========
 loadSlotData();
-setInterval(loadSlotData,  15000);
+setInterval(loadSlotData, 15000);
