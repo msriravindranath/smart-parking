@@ -15,7 +15,8 @@ let currentPlace = null;
 
 // ========= LOAD SLOT DATA =========
 function loadSlotData() {
-  fetch(sheetURL)
+  // 🔥 Cache-busting added here
+  fetch(sheetURL + "&t=" + new Date().getTime())
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
@@ -26,30 +27,10 @@ function loadSlotData() {
       currentPlace = cells[0];
 
       allSlots = [
-        {
-          id: "Slot 1",
-          area: currentPlace,
-          status: cells[1],
-          booked: cells[2]
-        },
-        {
-          id: "Slot 2",
-          area: currentPlace,
-          status: cells[3],
-          booked: cells[4]
-        },
-        {
-          id: "Slot 3",
-          area: currentPlace,
-          status: cells[5],
-          booked: cells[6]
-        },
-        {
-          id: "Slot 4",
-          area: currentPlace,
-          status: cells[7],
-          booked: cells[8]
-        }
+        { id: "Slot 1", area: currentPlace, status: cells[1], booked: cells[2] },
+        { id: "Slot 2", area: currentPlace, status: cells[3], booked: cells[4] },
+        { id: "Slot 3", area: currentPlace, status: cells[5], booked: cells[6] },
+        { id: "Slot 4", area: currentPlace, status: cells[7], booked: cells[8] }
       ];
 
       populateDropdown([currentPlace]);
@@ -143,5 +124,6 @@ function bookingCompleted() {
 // ========= INITIAL LOAD =========
 loadSlotData();
 
-// ========= AUTO REFRESH (EVERY 15 SECONDS) =========
-setInterval(loadSlotData, 150);
+// ========= AUTO REFRESH =========
+// ⏱ every 5 seconds (FAST but safe)
+setInterval(loadSlotData, 5000);
