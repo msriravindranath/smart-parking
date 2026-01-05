@@ -144,4 +144,4 @@ function bookingCompleted() {
 loadSlotData();
 
 // ========= AUTO REFRESH (EVERY 15 SECONDS) =========
-setInterval(loadSlotData, 15000);
+setInterval(loadSlotData, 150);
