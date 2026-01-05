@@ -135,4 +135,4 @@ function bookingCompleted() {
 
 // ========= INIT =========
 loadSlotData();
-setInterval(loadSlotData, 5000);
+setInterval(loadSlotData,  15000);
