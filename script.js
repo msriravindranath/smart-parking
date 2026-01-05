@@ -6,7 +6,7 @@ const sheetURL =
 
 // WRITE to Google Apps Script
 const apiURL =
-  "https://script.google.com/macros/s/AKfycbxZ2RezEOeSIpH2dVtYPBUQe-67PZwPkvbf-ZIYmU2BTuiV77baU_jqwIS2-DsPeZ5S/exec";
+  "https://script.google.com/macros/s/AKfycbypw7EME0B1Nh5t7_6gG1ONymR1KG_W7LnwAaK1BSxShdE4zAdvzy6ClSytUQofuJU0vg/exec";
 
 // ========= STATE =========
 let allSlots = [];
