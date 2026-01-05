@@ -13,57 +13,76 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = null;
 
+// 🔒 Stabilization memory
+let stableState = {};
+let changeCounter = {};
+
 // ========= LOAD SLOT DATA =========
 function loadSlotData() {
-  // 🔥 Cache-busting added here
-  fetch(sheetURL + "&t=" + new Date().getTime())
+  fetch(sheetURL + "&t=" + Date.now())
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
       if (rows.length < 2) return;
 
-      const cells = rows[1].split(",");
+      const c = rows[1].split(",");
+      currentPlace = c[0];
 
-      currentPlace = cells[0];
-
-      allSlots = [
-        { id: "Slot 1", area: currentPlace, status: cells[1], booked: cells[2] },
-        { id: "Slot 2", area: currentPlace, status: cells[3], booked: cells[4] },
-        { id: "Slot 3", area: currentPlace, status: cells[5], booked: cells[6] },
-        { id: "Slot 4", area: currentPlace, status: cells[7], booked: cells[8] }
+      const incoming = [
+        { id: "Slot 1", status: c[1], booked: c[2] },
+        { id: "Slot 2", status: c[3], booked: c[4] },
+        { id: "Slot 3", status: c[5], booked: c[6] },
+        { id: "Slot 4", status: c[7], booked: c[8] }
       ];
 
+      incoming.forEach(slot => {
+        const key = slot.id;
+        const rawState =
+          slot.booked === "YES"
+            ? "reserved"
+            : slot.status === "FILLED"
+            ? "occupied"
+            : "available";
+
+        if (!stableState[key]) {
+          stableState[key] = rawState;
+          changeCounter[key] = 0;
+        }
+
+        if (rawState !== stableState[key]) {
+          changeCounter[key]++;
+          if (changeCounter[key] >= 2) {
+            stableState[key] = rawState;
+            changeCounter[key] = 0;
+          }
+        } else {
+          changeCounter[key] = 0;
+        }
+
+        slot.finalState = stableState[key];
+        slot.area = currentPlace;
+      });
+
+      allSlots = incoming;
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
-    })
-    .catch(err => console.error("CSV fetch error:", err));
+    });
 }
 
 // ========= DROPDOWN =========
 function populateDropdown(places) {
   const dropdown = document.getElementById("placeFilter");
-
-  // prevent re-adding options on every refresh
   if (dropdown.options.length > 1) return;
 
   dropdown.innerHTML = `<option value="All">All Places</option>`;
-
-  places.forEach(place => {
-    const option = document.createElement("option");
-    option.value = place;
-    option.textContent = place;
-    dropdown.appendChild(option);
+  places.forEach(p => {
+    const o = document.createElement("option");
+    o.value = p;
+    o.textContent = p;
+    dropdown.appendChild(o);
   });
 
-  dropdown.onchange = () => {
-    const value = dropdown.value;
-    const filtered =
-      value === "All"
-        ? allSlots
-        : allSlots.filter(s => s.area === value);
-
-    displaySlots(filtered);
-  };
+  dropdown.onchange = () => displaySlots(allSlots);
 }
 
 // ========= DISPLAY =========
@@ -74,25 +93,17 @@ function displaySlots(slots) {
   slots.forEach(slot => {
     const div = document.createElement("div");
 
-    let statusClass = "available";
-    let statusText = "Available";
+    let label = "Available";
+    if (slot.finalState === "occupied") label = "Occupied";
+    if (slot.finalState === "reserved") label = "Reserved";
 
-    if (slot.booked === "YES") {
-      statusClass = "reserved";
-      statusText = "Reserved";
-    } else if (slot.status === "FILLED") {
-      statusClass = "occupied";
-      statusText = "Occupied";
-    }
-
-    div.className = `slot ${statusClass}`;
-
+    div.className = `slot ${slot.finalState}`;
     div.innerHTML = `
       <h3>${slot.id}</h3>
       <p>${slot.area}</p>
-      <p>Status: ${statusText}</p>
+      <p>Status: ${label}</p>
       ${
-        statusClass === "available"
+        slot.finalState === "available"
           ? `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`
           : ""
       }
@@ -113,17 +124,15 @@ function reserveSlot(slotId) {
 function bookingCompleted() {
   alert("✅ Booking confirmed!");
 
-  // Immediate frontend update
   const slot = allSlots.find(s => s.id === selectedSlotId);
-  if (slot) slot.booked = "YES";
+  if (slot) {
+    stableState[selectedSlotId] = "reserved";
+  }
 
   document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
 }
 
-// ========= INITIAL LOAD =========
+// ========= INIT =========
 loadSlotData();
-
-// ========= AUTO REFRESH =========
-// ⏱ every 5 seconds (FAST but safe)
 setInterval(loadSlotData, 5000);
