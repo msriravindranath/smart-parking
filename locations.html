@@ -5,6 +5,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      text-align: center;
     }
     .card {
       border: 1px solid #ccc;
@@ -13,7 +15,8 @@
       border-radius: 8px;
       width: 280px;
       display: inline-block;
-      vertical-align: top;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     .available {
       color: green;
@@ -27,26 +30,55 @@
 </head>
 <body>
 
-<h2>Parking Locations Overview</h2>
+<h2>🚗 Parking Locations Overview</h2>
 <div id="list"></div>
 
 <script>
-fetch("https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLh65nKiYaf0INcg4WBn0vL1vtxzpgTXvaizH0YtIFDAyw70YLBypGBkJ9viXNAWvNR1bRbrDEvwsAP9Bc6XMG6Ien54TMcrsMqiZGn69PwYHaPw9AU8FJy74KQxYCqdzJX9ujnF25s8TTIqnPbcRBGqVDGnUUsjm3emMR-eYx1TJU1MHtEtCrh227mj-IDjqZJ8TEQR5Hf-mgkb9M-1ezn9M7y2Ce7fD4q2-XttSiKtpUAOuLoVwOXGL0VS62WnTmqLfa1UYOxwDBj1BACsuBlwOsYCHg&lib=MT0JGTP1ovflhpi4oRwxz-w_ahli_ZfP5")
-  .then(res => res.json())
-  .then(data => {
-    const container = document.getElementById("list");
+// 🔹 CSV link of your NEW sheet
+const sheetURL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-    data.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = `
-        <h3>📍 ${item.area}</h3>
-        <p>Total Slots: <b>${item.totalSlots}</b></p>
-        <p class="available">Available: ${item.availableSlots}</p>
-        <p class="occupied">Occupied: ${item.occupiedSlots}</p>
-      `;
-      container.appendChild(div);
-    });
+fetch(sheetURL)
+  .then(res => res.text())
+  .then(csv => {
+    const rows = csv.trim().split("\n");
+    if (rows.length < 2) return;
+
+    const cells = rows[1].split(",");
+
+    const place = cells[0];
+
+    let totalSlots = 4;
+    let availableSlots = 0;
+    let occupiedSlots = 0;
+
+    // Slot-wise evaluation
+    for (let i = 1; i <= 7; i += 2) {
+      const status = cells[i];     // SlotX_Status
+      const booked = cells[i + 1]; // SlotX_Booked
+
+      if (booked === "YES" || status === "FILLED") {
+        occupiedSlots++;
+      } else {
+        availableSlots++;
+      }
+    }
+
+    const container = document.getElementById("list");
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <h3>📍 ${place}</h3>
+      <p>Total Slots: <b>${totalSlots}</b></p>
+      <p class="available">Available: ${availableSlots}</p>
+      <p class="occupied">Occupied / Booked: ${occupiedSlots}</p>
+    `;
+
+    container.appendChild(div);
+  })
+  .catch(err => {
+    console.error("Error loading CSV:", err);
   });
 </script>
 
