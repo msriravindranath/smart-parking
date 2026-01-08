@@ -9,8 +9,10 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// 🔐 Booking memory (VERY IMPORTANT)
-const bookedSlots = new Set();
+// 🔐 Persistent booking memory
+const bookedSlots = new Set(
+  JSON.parse(localStorage.getItem("bookedSlots") || "[]")
+);
 
 // ========= LOAD SLOT DATA =========
 function loadSlotData() {
@@ -31,12 +33,12 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // 🔒 Booking has top priority
+        // 🔒 Booking always wins
         if (bookedSlots.has(slot.id)) {
           return { ...slot, finalState: "reserved" };
         }
 
-        // Sensor update only if NOT booked
+        // Sensor-based update
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
@@ -99,7 +101,7 @@ function reserveSlot(slotId) {
   document.getElementById("bookingForm").style.display = "block";
 }
 
-// ========= BOOKING (FRONTEND ONLY) =========
+// ========= BOOKING (FRONTEND ONLY + PERSISTENT) =========
 function submitBooking() {
   const name = document.getElementById("userName").value;
   const time = document.getElementById("reserveTime").value;
@@ -109,8 +111,9 @@ function submitBooking() {
     return;
   }
 
-  // 🔒 Lock slot permanently (frontend)
+  // 🔒 Persist booking
   bookedSlots.add(selectedSlotId);
+  localStorage.setItem("bookedSlots", JSON.stringify([...bookedSlots]));
 
   alert("✅ Booking Confirmed!");
 
@@ -121,5 +124,5 @@ function submitBooking() {
 // ========= INIT =========
 loadSlotData();
 
-// 🔁 Auto-refresh ONLY affects non-booked slots
+// 🔁 Auto-refresh (safe)
 setInterval(loadSlotData, 15000);
