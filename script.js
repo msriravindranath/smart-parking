@@ -1,16 +1,18 @@
 // ========= CONFIG =========
+
+// READ Google Sheet (CSV)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
-
-const apiURL =
-  "https://script.google.com/macros/s/AKfycbznYNQTr_IbYnfhiI_EaBthHpNWLaXAlKlXESqMWRzW9z2v5PNtoQlJOlh_8djFAukkNQ/exec";
 
 // ========= STATE =========
 let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// ========= LOAD DATA =========
+// 🔐 Booking memory (VERY IMPORTANT)
+const bookedSlots = new Set();
+
+// ========= LOAD SLOT DATA =========
 function loadSlotData() {
   fetch(sheetURL + "&t=" + Date.now())
     .then(res => res.text())
@@ -21,12 +23,26 @@ function loadSlotData() {
       const c = rows[1].split(",");
       currentPlace = c[0];
 
-      allSlots = [
-        { id: "Slot 1", status: c[1], booked: c[2] },
-        { id: "Slot 2", status: c[3], booked: c[4] },
-        { id: "Slot 3", status: c[5], booked: c[6] },
-        { id: "Slot 4", status: c[7], booked: c[8] }
+      const incoming = [
+        { id: "Slot 1", status: c[1] },
+        { id: "Slot 2", status: c[3] },
+        { id: "Slot 3", status: c[5] },
+        { id: "Slot 4", status: c[7] }
       ];
+
+      allSlots = incoming.map(slot => {
+        // 🔒 Booking has top priority
+        if (bookedSlots.has(slot.id)) {
+          return { ...slot, finalState: "reserved" };
+        }
+
+        // Sensor update only if NOT booked
+        if (slot.status === "FILLED") {
+          return { ...slot, finalState: "occupied" };
+        }
+
+        return { ...slot, finalState: "available" };
+      });
 
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
@@ -54,26 +70,19 @@ function displaySlots(slots) {
   container.innerHTML = "";
 
   slots.forEach(slot => {
-    let state = "available";
     let label = "Available";
-
-    if (slot.booked === "YES") {
-      state = "reserved";
-      label = "Reserved";
-    } else if (slot.status === "FILLED") {
-      state = "occupied";
-      label = "Occupied";
-    }
+    if (slot.finalState === "occupied") label = "Occupied";
+    if (slot.finalState === "reserved") label = "Reserved";
 
     const div = document.createElement("div");
-    div.className = `slot ${state}`;
+    div.className = `slot ${slot.finalState}`;
 
     div.innerHTML = `
       <h3>${slot.id}</h3>
       <p>${currentPlace}</p>
       <p>Status: ${label}</p>
       ${
-        state === "available"
+        slot.finalState === "available"
           ? `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`
           : ""
       }
@@ -90,42 +99,27 @@ function reserveSlot(slotId) {
   document.getElementById("bookingForm").style.display = "block";
 }
 
-// ========= SUBMIT BOOKING =========
+// ========= BOOKING (FRONTEND ONLY) =========
 function submitBooking() {
   const name = document.getElementById("userName").value;
   const time = document.getElementById("reserveTime").value;
 
-  if (!selectedSlotId || !name || !time) {
-    alert("Fill all details");
+  if (!name || !time || !selectedSlotId) {
+    alert("❌ Please fill all details");
     return;
   }
 
-  fetch(apiURL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      slotId: selectedSlotId,
-      name: name,
-      time: time
-    })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "success") {
-        alert("✅ Booking confirmed!");
-        document.getElementById("bookingForm").style.display = "none";
-        loadSlotData();
-      } else {
-        alert("❌ Booking failed");
-        console.error(data);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Backend error");
-    });
+  // 🔒 Lock slot permanently (frontend)
+  bookedSlots.add(selectedSlotId);
+
+  alert("✅ Booking Confirmed!");
+
+  document.getElementById("bookingForm").style.display = "none";
+  displaySlots(allSlots);
 }
 
 // ========= INIT =========
 loadSlotData();
+
+// 🔁 Auto-refresh ONLY affects non-booked slots
 setInterval(loadSlotData, 15000);
