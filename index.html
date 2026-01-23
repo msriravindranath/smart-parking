@@ -3,121 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart Parking Dashboard</title>
-
-  <!-- Google Font -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
-    rel="stylesheet"
-  >
-
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ================= LOCATION SELECT MODAL ================= -->
-  <div id="locationModal" class="modal">
-    <div class="modal-content">
-      <h3>Select Parking Location</h3>
-
-      <select id="locationSelect">
-        <option value="">-- Choose Location --</option>
-        <option value="Sheet1">Santhiram Engineering College</option>
-        <option value="Sheet2">CMR Shopping Mall</option>
-        <option value="Sheet3">Bus Stand Nandyal</option>
-        <option value="Sheet4">Santhiram Hospital</option>
-      </select>
-
-      <button onclick="confirmLocation()">Continue</button>
-    </div>
+<!-- LOCATION SELECT MODAL -->
+<div id="locationModal" class="modal">
+  <div class="modal-content">
+    <h3>Select Parking Location</h3>
+    <select id="locationSelect">
+      <option value="">-- Choose Location --</option>
+      <option value="2">Santhiram Engineering College</option>
+      <option value="3">CMR Shopping Mall</option>
+      <option value="4">Bus Stand Nandyal</option>
+      <option value="5">Santhiram Hospital</option>
+    </select>
+    <button onclick="confirmLocation()">Continue</button>
   </div>
+</div>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <h1>Smart Parking System</h1>
-    <button onclick="loadSlotData()">🔄 Refresh</button>
-  </nav>
+<nav class="navbar">
+  <h1>Smart Parking System</h1>
+  <button onclick="loadSlotData()">🔄 Refresh</button>
+</nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <h2>Smart Park</h2>
-    <p>IoT Based · Real-Time Monitoring</p>
-  </section>
+<section class="hero">
+  <h2>Smart Park</h2>
+  <p>IoT Based · Real-Time Monitoring</p>
+</section>
 
-  <!-- STATS -->
-  <section class="stats">
-    <div class="stat green">
-      <h3 id="freeCount">--</h3>
-      <span>Available Slots</span>
-    </div>
+<section class="stats">
+  <div class="stat green"><h3 id="freeCount">--</h3><span>Available</span></div>
+  <div class="stat red"><h3 id="occupiedCount">--</h3><span>Occupied</span></div>
+  <div class="stat orange"><h3 id="reservedCount">--</h3><span>Reserved</span></div>
+</section>
 
-    <div class="stat red">
-      <h3 id="occupiedCount">--</h3>
-      <span>Occupied Slots</span>
-    </div>
+<main id="slots" class="slot-grid"></main>
 
-    <div class="stat orange">
-      <h3 id="reservedCount">--</h3>
-      <span>Reserved Slots</span>
-    </div>
-  </section>
-
-  <!-- SLOT GRID -->
-  <main id="slots" class="slot-grid"></main>
-
-  <!-- ================= BOOKING MODAL ================= -->
-  <div id="bookingModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeBooking()">×</span>
-
-      <h3>Reserve Parking Slot</h3>
-
-      <input
-        type="text"
-        id="userName"
-        placeholder="Your Name"
-        required
-      >
-
-      <input
-        type="time"
-        id="reserveTime"
-        required
-      >
-
-      <button onclick="submitBooking()">Confirm Booking</button>
-    </div>
+<div id="bookingModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeBooking()">×</span>
+    <h3>Reserve Parking Slot</h3>
+    <input id="userName" placeholder="Your Name">
+    <input id="reserveTime" type="time">
+    <button onclick="submitBooking()">Confirm Booking</button>
   </div>
+</div>
 
-  <!-- FOOTER -->
-  <footer>
-    <p>Smart Parking System</p>
-  </footer>
+<footer><p>Smart Parking System</p></footer>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 
-  <!-- ================= LOCATION SELECTION SCRIPT ================= -->
-  <script>
-    function getSheetFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("sheet");
-    }
+<script>
+function confirmLocation() {
+  const row = document.getElementById("locationSelect").value;
+  if (!row) return alert("Select location");
+  localStorage.setItem("selectedRow", row);
+  document.getElementById("locationModal").style.display = "none";
+  loadSlotData();
+}
 
-    function confirmLocation() {
-      const sheet = document.getElementById("locationSelect").value;
-      if (!sheet) {
-        alert("Please select a location");
-        return;
-      }
-      window.location.href = `index.html?sheet=${sheet}`;
-    }
-
-    // Show location modal only if no sheet is selected
-    window.onload = () => {
-      if (!getSheetFromURL()) {
-        document.getElementById("locationModal").style.display = "block";
-      }
-    };
-  </script>
+window.onload = () => {
+  if (!localStorage.getItem("selectedRow")) {
+    document.getElementById("locationModal").style.display = "block";
+  }
+};
+</script>
 
 </body>
 </html>
