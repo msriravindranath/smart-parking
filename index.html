@@ -2,30 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Parking System</title>
+  <title>Smart Parking Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header>
-    <h1>🚗 Smart Parking System</h1>
-    <p>Live Parking Slot Monitoring</p>
-  </header>
+  <!-- TOP NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">🚗 Smart Parking</div>
+    <button class="refresh-btn" onclick="loadSlotData()">🔄 Refresh</button>
+  </nav>
 
-  <!-- ACTION BAR -->
-  <div class="action-bar">
-    <button class="refresh-btn" onclick="loadSlotData()">🔄 Refresh Status</button>
-  </div>
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1>Live Parking Slot Status</h1>
+    <p>Real-time monitoring using ESP32 & Google Sheets</p>
+  </section>
 
-  <!-- SLOT CONTAINER -->
-  <div id="slots" class="slot-container">
-    <!-- Slots injected by JavaScript -->
-  </div>
+  <!-- STATS BAR -->
+  <section class="stats">
+    <div class="stat-card green">
+      <h2 id="freeCount">--</h2>
+      <p>Available Slots</p>
+    </div>
+    <div class="stat-card red">
+      <h2 id="occupiedCount">--</h2>
+      <p>Occupied Slots</p>
+    </div>
+  </section>
+
+  <!-- SLOT GRID -->
+  <main class="slot-grid" id="slots">
+    <!-- Slots injected by JS -->
+  </main>
 
   <!-- FOOTER -->
   <footer>
-    <p>Powered by ESP32 & Google Sheets</p>
+    <p>Smart Parking System | ECE Mini Project</p>
   </footer>
 
   <script src="script.js"></script>
