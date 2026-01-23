@@ -9,6 +9,9 @@
 
   <h1>🚗 Smart Parking Booking System</h1>
 
+  <!-- OPTIONAL MANUAL REFRESH -->
+  <button onclick="loadSlotData()">🔄 Refresh Slot Status</button>
+
   <!-- PLACE FILTER -->
   <select id="placeFilter">
     <option value="All">All Places</option>
@@ -38,7 +41,7 @@
     <button onclick="submitBooking()">Confirm Booking</button>
   </div>
 
-  <!-- SLOTS -->
+  <!-- SLOT DISPLAY -->
   <div id="slots"></div>
 
   <script src="script.js"></script>
