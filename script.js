@@ -88,6 +88,7 @@ function displaySlots(slots) {
 
   let free = 0;
   let busy = 0;
+  let reserved = 0;
 
   slots.forEach(slot => {
     const div = document.createElement("div");
@@ -102,6 +103,7 @@ function displaySlots(slots) {
 
     if (slot.finalState === "available") free++;
     if (slot.finalState === "occupied") busy++;
+    if (slot.finalState === "reserved") reserved++;
 
     let buttonHTML = "";
     if (slot.finalState === "available") {
@@ -111,7 +113,6 @@ function displaySlots(slots) {
       buttonHTML = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
     }
 
-    // 🔥 IMPORTANT: slot-inner wrapper for animations
     div.innerHTML = `
       <div class="slot-inner">
         <h3>${slot.id}</h3>
@@ -124,21 +125,23 @@ function displaySlots(slots) {
     container.appendChild(div);
   });
 
-  // Update dashboard counters
-  const freeEl = document.getElementById("freeCount");
-  const busyEl = document.getElementById("occupiedCount");
-  if (freeEl && busyEl) {
-    freeEl.innerText = free;
-    busyEl.innerText = busy;
-  }
+  // Update counters
+  document.getElementById("freeCount").innerText = free;
+  document.getElementById("occupiedCount").innerText = busy;
+  document.getElementById("reservedCount").innerText = reserved;
 }
 
 // ======================================
-// RESERVE SLOT (OPEN FORM)
+// RESERVE SLOT (OPEN MODAL)
 // ======================================
 function reserveSlot(slotId) {
   selectedSlotId = slotId;
-  document.getElementById("bookingForm").style.display = "block";
+  document.getElementById("bookingModal").style.display = "block";
+}
+
+// Close modal
+function closeBooking() {
+  document.getElementById("bookingModal").style.display = "none";
 }
 
 // ======================================
@@ -160,25 +163,30 @@ function submitBooking() {
   };
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
-  // Send reservation to backend
+  // Send to backend
   fetch(backendURL, {
     method: "POST",
     body: JSON.stringify({
       source: "browser",
       slotId: selectedSlotId,
-      name: name,
-      time: time
+      name,
+      time
     })
-  }).catch(err => console.error("Backend error:", err));
+  }).catch(() => {});
 
+  // Update UI instantly
   allSlots = allSlots.map(slot =>
     slot.id === selectedSlotId
       ? { ...slot, finalState: "reserved" }
       : slot
   );
 
+  // Reset modal
+  document.getElementById("userName").value = "";
+  document.getElementById("reserveTime").value = "";
+  closeBooking();
+
   alert("✅ Booking Confirmed");
-  document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
 }
 
@@ -195,9 +203,7 @@ function unreserveSlot(slotId) {
     method: "POST",
     body: JSON.stringify({
       source: "browser",
-      slotId: slotId,
-      name: "",
-      time: ""
+      slotId
     })
   }).catch(() => {});
 
