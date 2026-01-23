@@ -7,43 +7,57 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
+  <!-- Main CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- GLASS NAVBAR -->
+  <!-- NAVBAR -->
   <nav class="navbar">
     <h1>🚗 Smart Parking System</h1>
     <button onclick="loadSlotData()">🔄 Refresh</button>
   </nav>
 
-  <!-- HERO -->
+  <!-- HERO SECTION -->
   <section class="hero">
-    <h2>Smart Parking</h2>
-    <p>IoT · Real-Time Monitoring</p>
+    <h2>Next-Gen Smart Parking</h2>
+    <p>ESP32 · IoT · Real-Time Monitoring</p>
   </section>
 
   <!-- STATS -->
   <section class="stats">
     <div class="stat green">
       <h3 id="freeCount">--</h3>
-      <span>Available</span>
+      <span>Available Slots</span>
     </div>
     <div class="stat red">
       <h3 id="occupiedCount">--</h3>
-      <span>Occupied</span>
+      <span>Occupied Slots</span>
     </div>
   </section>
 
   <!-- SLOT GRID -->
   <main id="slots" class="slot-grid">
-    <!-- injected by JS -->
+    <!-- 
+      IMPORTANT:
+      script.js MUST generate slots like this:
+
+      <div class="slot available">
+        <div class="slot-inner">
+          <h3>Slot 1</h3>
+          <p>Status: Available</p>
+          <button>Reserve</button>
+        </div>
+      </div>
+    -->
   </main>
 
+  <!-- FOOTER -->
   <footer>
-    <p>Smart Parking System | ECE Project</p>
+    <p>Smart Parking System | ECE Mini Project</p>
   </footer>
 
+  <!-- JS -->
   <script src="script.js"></script>
 </body>
 </html>
