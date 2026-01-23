@@ -1,28 +1,37 @@
-// ========= CONFIG =========
+// ======================================
+// CONFIG
+// ======================================
 
-// Google Sheet CSV (initial snapshot only)
+// Google Sheet CSV (INITIAL SNAPSHOT ONLY)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
+
+// 🔗 Google Apps Script Web App URL (DEPLOYED)
+const backendURL = "https://script.google.com/macros/s/AKfycbx3OLzBs69KEZeN0XGCgTiXoxzRgYK6lKVbGAbvAT3BrHXCPgJxROB-8FVA_rtCa8ndUQ/exec";
 
 // Reservation expiry (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
 
-// ========= STATE =========
+// ======================================
+// STATE
+// ======================================
 let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// Load reservations
+// Load reservation memory
 let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
 
-// ========= CLEAN EXPIRED BOOKINGS =========
+// ======================================
+// CLEAN EXPIRED RESERVATIONS
+// ======================================
 function cleanExpiredBookings() {
   const now = Date.now();
   let changed = false;
 
-  Object.keys(bookedSlots).forEach(id => {
-    if (now - bookedSlots[id].reservedAt > RESERVATION_DURATION) {
-      delete bookedSlots[id];
+  Object.keys(bookedSlots).forEach(slotId => {
+    if (now - bookedSlots[slotId].reservedAt > RESERVATION_DURATION) {
+      delete bookedSlots[slotId];
       changed = true;
     }
   });
@@ -32,7 +41,9 @@ function cleanExpiredBookings() {
   }
 }
 
-// ========= LOAD FROM SHEET (ONLY SNAPSHOT) =========
+// ======================================
+// LOAD SLOT DATA (FROM SHEET – ONCE / MANUAL)
+// ======================================
 function loadSlotData() {
   cleanExpiredBookings();
 
@@ -53,20 +64,27 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
+        // Reservation has highest priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
+
+        // ESP32 sensor snapshot
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
+
         return { ...slot, finalState: "available" };
       });
 
       displaySlots(allSlots);
-    });
+    })
+    .catch(err => console.error("CSV Load Error:", err));
 }
 
-// ========= DISPLAY =========
+// ======================================
+// DISPLAY SLOTS
+// ======================================
 function displaySlots(slots) {
   const container = document.getElementById("slots");
   container.innerHTML = "";
@@ -82,32 +100,36 @@ function displaySlots(slots) {
         ? "Reserved"
         : "Available";
 
-    let button = "";
+    let buttonHTML = "";
     if (slot.finalState === "available") {
-      button = `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`;
+      buttonHTML = `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`;
     }
     if (slot.finalState === "reserved") {
-      button = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
+      buttonHTML = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
     }
 
     div.innerHTML = `
       <h3>${slot.id}</h3>
       <p>${currentPlace}</p>
       <p>Status: ${label}</p>
-      ${button}
+      ${buttonHTML}
     `;
 
     container.appendChild(div);
   });
 }
 
-// ========= RESERVE =========
+// ======================================
+// RESERVE SLOT (OPEN FORM)
+// ======================================
 function reserveSlot(slotId) {
   selectedSlotId = slotId;
   document.getElementById("bookingForm").style.display = "block";
 }
 
-// ========= CONFIRM BOOKING =========
+// ======================================
+// CONFIRM BOOKING
+// ======================================
 function submitBooking() {
   const name = document.getElementById("userName").value;
   const time = document.getElementById("reserveTime").value;
@@ -117,7 +139,7 @@ function submitBooking() {
     return;
   }
 
-  // Save booking
+  // Save locally
   bookedSlots[selectedSlotId] = {
     name,
     time,
@@ -125,25 +147,48 @@ function submitBooking() {
   };
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
-  // 🔥 UPDATE SLOT STATE LOCALLY (KEY FIX)
+  // 🔥 SEND RESERVATION TO GOOGLE SHEET
+  fetch(backendURL, {
+    method: "POST",
+    body: JSON.stringify({
+      source: "browser",
+      slotId: selectedSlotId,
+      name: name,
+      time: time
+    })
+  }).catch(err => console.error("Backend error:", err));
+
+  // Update UI instantly
   allSlots = allSlots.map(slot =>
     slot.id === selectedSlotId
       ? { ...slot, finalState: "reserved" }
       : slot
   );
 
-  alert("✅ Booking Confirmed");
+  alert("✅ Booking Confirmed & Saved");
   document.getElementById("bookingForm").style.display = "none";
-
-  displaySlots(allSlots); // ✅ color changes instantly
+  displaySlots(allSlots);
 }
 
-// ========= UNRESERVE =========
+// ======================================
+// UNRESERVE SLOT
+// ======================================
 function unreserveSlot(slotId) {
   if (!confirm(`Unreserve ${slotId}?`)) return;
 
   delete bookedSlots[slotId];
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
+
+  // Optional: clear reservation in sheet (not mandatory)
+  fetch(backendURL, {
+    method: "POST",
+    body: JSON.stringify({
+      source: "browser",
+      slotId: slotId,
+      name: "",
+      time: ""
+    })
+  }).catch(() => {});
 
   allSlots = allSlots.map(slot =>
     slot.id === slotId
@@ -154,5 +199,7 @@ function unreserveSlot(slotId) {
   displaySlots(allSlots);
 }
 
-// ========= INIT =========
-loadSlotData();
+// ======================================
+// INIT
+// ======================================
+loadSlotData(); // Initial snapshot load
