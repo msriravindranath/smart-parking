@@ -3,40 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart Parking Dashboard</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- TOP NAVBAR -->
+  <!-- GLASS NAVBAR -->
   <nav class="navbar">
-    <div class="logo">🚗 Smart Parking</div>
-    <button class="refresh-btn" onclick="loadSlotData()">🔄 Refresh</button>
+    <h1>🚗 Smart Parking System</h1>
+    <button onclick="loadSlotData()">🔄 Refresh</button>
   </nav>
 
-  <!-- HERO SECTION -->
+  <!-- HERO -->
   <section class="hero">
-    <h1>Live Parking Slot Status</h1>
-    <p>Real-time monitoring using ESP32 & Google Sheets</p>
+    <h2>Next-Gen Smart Parking</h2>
+    <p>ESP32 · IoT · Real-Time Monitoring</p>
   </section>
 
-  <!-- STATS BAR -->
+  <!-- STATS -->
   <section class="stats">
-    <div class="stat-card green">
-      <h2 id="freeCount">--</h2>
-      <p>Available Slots</p>
+    <div class="stat green">
+      <h3 id="freeCount">--</h3>
+      <span>Available</span>
     </div>
-    <div class="stat-card red">
-      <h2 id="occupiedCount">--</h2>
-      <p>Occupied Slots</p>
+    <div class="stat red">
+      <h3 id="occupiedCount">--</h3>
+      <span>Occupied</span>
     </div>
   </section>
 
   <!-- SLOT GRID -->
-  <main class="slot-grid" id="slots">
-    <!-- Slots injected by JS -->
+  <main id="slots" class="slot-grid">
+    <!-- injected by JS -->
   </main>
 
-  <!-- FOOTER -->
   <footer>
     <p>Smart Parking System | ECE Mini Project</p>
   </footer>
