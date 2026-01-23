@@ -3,8 +3,11 @@
 // ======================================
 
 // Base Google Sheet CSV URL (ENTIRE DOCUMENT PUBLISHED)
+const SPREADSHEET_ID = "1N9di09mm0SajrbJo-jeLVgrvMJrpFTUWf6MjamY5gWg";
+
 const BASE_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
+  `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+
 
 // Google Apps Script Web App URL
 const backendURL =
