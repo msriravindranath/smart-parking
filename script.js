@@ -1,6 +1,6 @@
 // ========= CONFIG =========
 
-// Google Sheet CSV (READ ONLY)
+// Google Sheet CSV (initial state only)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
@@ -12,7 +12,7 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// 🔐 Load bookings from localStorage
+// 🔐 Load reservations
 let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
 
 // ========= CLEAN EXPIRED BOOKINGS =========
@@ -32,7 +32,7 @@ function cleanExpiredBookings() {
   }
 }
 
-// ========= LOAD SLOT DATA =========
+// ========= LOAD SLOT DATA (MANUAL / ONCE) =========
 function loadSlotData() {
   cleanExpiredBookings();
 
@@ -55,12 +55,12 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // 🔒 Reservation has priority
+        // Reservation has highest priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
 
-        // 🚗 Sensor-based occupancy
+        // Sensor snapshot (initial)
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
@@ -71,7 +71,7 @@ function loadSlotData() {
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
     })
-    .catch(err => console.error("CSV fetch error:", err));
+    .catch(err => console.error("CSV error:", err));
 }
 
 // ========= DROPDOWN =========
@@ -150,7 +150,7 @@ function submitBooking() {
   alert("✅ Booking Confirmed (Valid for 30 minutes)");
   document.getElementById("bookingForm").style.display = "none";
 
-  loadSlotData();
+  displaySlots(allSlots);
 }
 
 // ========= UNRESERVE =========
@@ -165,11 +165,8 @@ function unreserveSlot(slotId) {
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
   alert(`✅ ${slotId} is now available`);
-  loadSlotData();
+  displaySlots(allSlots);
 }
 
 // ========= INIT =========
-loadSlotData();
-
-// 🔁 Auto refresh every 10 seconds
-setInterval(loadSlotData, 10000);
+loadSlotData(); // load ONCE
