@@ -1,10 +1,10 @@
 // ========= CONFIG =========
 
-// READ Google Sheet (CSV)
+// Google Sheet CSV (READ ONLY)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-// Reservation expiry time (30 mins)
+// Reservation valid time (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
 
 // ========= STATE =========
@@ -12,10 +12,10 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// 🔐 Persistent booking memory with time
+// 🔐 Load bookings from localStorage
 let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
 
-// ========= CLEAN EXPIRED BOOKINGS =========
+// ========= CLEAN EXPIRED RESERVATIONS =========
 function cleanExpiredBookings() {
   const now = Date.now();
   let changed = false;
@@ -53,12 +53,12 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // 🔒 Booking check (with expiry)
+        // 🔒 Reserved has highest priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
 
-        // Sensor-based update
+        // 🚗 Sensor-based occupancy
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
@@ -69,7 +69,7 @@ function loadSlotData() {
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
     })
-    .catch(err => console.error("CSV error:", err));
+    .catch(err => console.error("CSV load error:", err));
 }
 
 // ========= DROPDOWN =========
@@ -78,15 +78,15 @@ function populateDropdown(places) {
   if (dropdown.options.length > 1) return;
 
   dropdown.innerHTML = `<option value="All">All Places</option>`;
-  places.forEach(p => {
-    const o = document.createElement("option");
-    o.value = p;
-    o.textContent = p;
-    dropdown.appendChild(o);
+  places.forEach(place => {
+    const option = document.createElement("option");
+    option.value = place;
+    option.textContent = place;
+    dropdown.appendChild(option);
   });
 }
 
-// ========= DISPLAY =========
+// ========= DISPLAY SLOTS =========
 function displaySlots(slots) {
   const container = document.getElementById("slots");
   container.innerHTML = "";
@@ -99,15 +99,23 @@ function displaySlots(slots) {
     const div = document.createElement("div");
     div.className = `slot ${slot.finalState}`;
 
+    let buttonHTML = "";
+
+    // Reserve button
+    if (slot.finalState === "available") {
+      buttonHTML = `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`;
+    }
+
+    // Unreserve button
+    if (slot.finalState === "reserved") {
+      buttonHTML = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
+    }
+
     div.innerHTML = `
       <h3>${slot.id}</h3>
       <p>${currentPlace}</p>
       <p>Status: ${label}</p>
-      ${
-        slot.finalState === "available"
-          ? `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`
-          : ""
-      }
+      ${buttonHTML}
     `;
 
     container.appendChild(div);
@@ -121,7 +129,7 @@ function reserveSlot(slotId) {
   document.getElementById("bookingForm").style.display = "block";
 }
 
-// ========= BOOKING (FRONTEND ONLY + TIMED) =========
+// ========= CONFIRM BOOKING =========
 function submitBooking() {
   const name = document.getElementById("userName").value;
   const time = document.getElementById("reserveTime").value;
@@ -131,10 +139,9 @@ function submitBooking() {
     return;
   }
 
-  // 🔒 Save booking with timestamp
   bookedSlots[selectedSlotId] = {
-    name,
-    time,
+    name: name,
+    time: time,
     reservedAt: Date.now()
   };
 
@@ -146,8 +153,23 @@ function submitBooking() {
   displaySlots(allSlots);
 }
 
+// ========= UNRESERVE =========
+function unreserveSlot(slotId) {
+  const confirmUnreserve = confirm(
+    `Are you sure you want to unreserve ${slotId}?`
+  );
+
+  if (!confirmUnreserve) return;
+
+  delete bookedSlots[slotId];
+  localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
+
+  alert(`✅ ${slotId} is now available`);
+  loadSlotData();
+}
+
 // ========= INIT =========
 loadSlotData();
 
-// 🔁 Auto-refresh
+// 🔁 Auto refresh every 10 seconds
 setInterval(loadSlotData, 10000);
