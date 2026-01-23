@@ -6,8 +6,9 @@
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-// 🔗 Google Apps Script Web App URL (DEPLOYED)
-const backendURL = "https://script.google.com/macros/s/AKfycbxLBqdNTuYFRhR56ND-_vSa7YYnPHgwpuerGBmTlKp5ybJHmcHRy6jBue4DqjF0Yv9noQ/exec";
+// Google Apps Script Web App URL
+const backendURL =
+  "https://script.google.com/macros/s/AKfycbxLBqdNTuYFRhR56ND-_vSa7YYnPHgwpuerGBmTlKp5ybJHmcHRy6jBue4DqjF0Yv9noQ/exec";
 
 // Reservation expiry (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
@@ -42,7 +43,7 @@ function cleanExpiredBookings() {
 }
 
 // ======================================
-// LOAD SLOT DATA (FROM SHEET – ONCE / MANUAL)
+// LOAD SLOT DATA (FROM SHEET)
 // ======================================
 function loadSlotData() {
   cleanExpiredBookings();
@@ -64,16 +65,12 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // Reservation has highest priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
-
-        // ESP32 sensor snapshot
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
-
         return { ...slot, finalState: "available" };
       });
 
@@ -83,11 +80,14 @@ function loadSlotData() {
 }
 
 // ======================================
-// DISPLAY SLOTS
+// DISPLAY SLOTS (ANIMATION-SAFE)
 // ======================================
 function displaySlots(slots) {
   const container = document.getElementById("slots");
   container.innerHTML = "";
+
+  let free = 0;
+  let busy = 0;
 
   slots.forEach(slot => {
     const div = document.createElement("div");
@@ -100,6 +100,9 @@ function displaySlots(slots) {
         ? "Reserved"
         : "Available";
 
+    if (slot.finalState === "available") free++;
+    if (slot.finalState === "occupied") busy++;
+
     let buttonHTML = "";
     if (slot.finalState === "available") {
       buttonHTML = `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`;
@@ -108,15 +111,26 @@ function displaySlots(slots) {
       buttonHTML = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
     }
 
+    // 🔥 IMPORTANT: slot-inner wrapper for animations
     div.innerHTML = `
-      <h3>${slot.id}</h3>
-      <p>${currentPlace}</p>
-      <p>Status: ${label}</p>
-      ${buttonHTML}
+      <div class="slot-inner">
+        <h3>${slot.id}</h3>
+        <p>${currentPlace}</p>
+        <p>Status: ${label}</p>
+        ${buttonHTML}
+      </div>
     `;
 
     container.appendChild(div);
   });
+
+  // Update dashboard counters
+  const freeEl = document.getElementById("freeCount");
+  const busyEl = document.getElementById("occupiedCount");
+  if (freeEl && busyEl) {
+    freeEl.innerText = free;
+    busyEl.innerText = busy;
+  }
 }
 
 // ======================================
@@ -139,7 +153,6 @@ function submitBooking() {
     return;
   }
 
-  // Save locally
   bookedSlots[selectedSlotId] = {
     name,
     time,
@@ -147,7 +160,7 @@ function submitBooking() {
   };
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
-  // 🔥 SEND RESERVATION TO GOOGLE SHEET
+  // Send reservation to backend
   fetch(backendURL, {
     method: "POST",
     body: JSON.stringify({
@@ -158,14 +171,13 @@ function submitBooking() {
     })
   }).catch(err => console.error("Backend error:", err));
 
-  // Update UI instantly
   allSlots = allSlots.map(slot =>
     slot.id === selectedSlotId
       ? { ...slot, finalState: "reserved" }
       : slot
   );
 
-  alert("✅ Booking Confirmed & Saved");
+  alert("✅ Booking Confirmed");
   document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
 }
@@ -179,7 +191,6 @@ function unreserveSlot(slotId) {
   delete bookedSlots[slotId];
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
-  // Optional: clear reservation in sheet (not mandatory)
   fetch(backendURL, {
     method: "POST",
     body: JSON.stringify({
@@ -202,4 +213,4 @@ function unreserveSlot(slotId) {
 // ======================================
 // INIT
 // ======================================
-loadSlotData(); // Initial snapshot load
+loadSlotData();
