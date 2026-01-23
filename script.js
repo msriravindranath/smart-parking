@@ -7,7 +7,7 @@ const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
 // 🔗 Google Apps Script Web App URL (DEPLOYED)
-const backendURL = "https://script.google.com/macros/s/AKfycbx3OLzBs69KEZeN0XGCgTiXoxzRgYK6lKVbGAbvAT3BrHXCPgJxROB-8FVA_rtCa8ndUQ/exec";
+const backendURL = "https://script.google.com/macros/s/AKfycbxLBqdNTuYFRhR56ND-_vSa7YYnPHgwpuerGBmTlKp5ybJHmcHRy6jBue4DqjF0Yv9noQ/exec";
 
 // Reservation expiry (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
