@@ -4,7 +4,7 @@
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-// Reservation valid time (30 minutes)
+// Reservation expiry (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
 
 // ========= STATE =========
@@ -15,7 +15,7 @@ let currentPlace = "";
 // 🔐 Load bookings from localStorage
 let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
 
-// ========= CLEAN EXPIRED RESERVATIONS =========
+// ========= CLEAN EXPIRED BOOKINGS =========
 function cleanExpiredBookings() {
   const now = Date.now();
   let changed = false;
@@ -36,7 +36,9 @@ function cleanExpiredBookings() {
 function loadSlotData() {
   cleanExpiredBookings();
 
-  fetch(sheetURL + "&t=" + Date.now())
+  fetch(sheetURL + "&nocache=" + new Date().getTime(), {
+    cache: "no-store"
+  })
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
@@ -53,7 +55,7 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // 🔒 Reserved has highest priority
+        // 🔒 Reservation has priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
@@ -69,7 +71,7 @@ function loadSlotData() {
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
     })
-    .catch(err => console.error("CSV load error:", err));
+    .catch(err => console.error("CSV fetch error:", err));
 }
 
 // ========= DROPDOWN =========
@@ -86,7 +88,7 @@ function populateDropdown(places) {
   });
 }
 
-// ========= DISPLAY SLOTS =========
+// ========= DISPLAY =========
 function displaySlots(slots) {
   const container = document.getElementById("slots");
   container.innerHTML = "";
@@ -101,12 +103,10 @@ function displaySlots(slots) {
 
     let buttonHTML = "";
 
-    // Reserve button
     if (slot.finalState === "available") {
       buttonHTML = `<button onclick="reserveSlot('${slot.id}')">Reserve</button>`;
     }
 
-    // Unreserve button
     if (slot.finalState === "reserved") {
       buttonHTML = `<button onclick="unreserveSlot('${slot.id}')">Unreserve</button>`;
     }
@@ -140,17 +140,17 @@ function submitBooking() {
   }
 
   bookedSlots[selectedSlotId] = {
-    name: name,
-    time: time,
+    name,
+    time,
     reservedAt: Date.now()
   };
 
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
   alert("✅ Booking Confirmed (Valid for 30 minutes)");
-
   document.getElementById("bookingForm").style.display = "none";
-  displaySlots(allSlots);
+
+  loadSlotData();
 }
 
 // ========= UNRESERVE =========
