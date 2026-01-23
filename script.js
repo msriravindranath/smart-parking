@@ -59,9 +59,9 @@ function loadSlotData() {
 
       const incoming = [
         { id: "Slot 1", status: c[1] },
-        { id: "Slot 2", status: c[3] },
-        { id: "Slot 3", status: c[5] },
-        { id: "Slot 4", status: c[7] }
+        { id: "Slot 2", status: c[2] },
+        { id: "Slot 3", status: c[3] },
+        { id: "Slot 4", status: c[4] }
       ];
 
       allSlots = incoming.map(slot => {
