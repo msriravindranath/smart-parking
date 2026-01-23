@@ -1,4 +1,4 @@
-/* ===== GLOBAL ===== */
+/* ================= GLOBAL ================= */
 * {
   box-sizing: border-box;
   font-family: 'Poppins', sans-serif;
@@ -7,22 +7,26 @@
 body {
   margin: 0;
   min-height: 100vh;
+  color: white;
+
+  /* Smart parking background */
   background:
     linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
     url("https://images.unsplash.com/photo-1592194996308-7b43878e84a6");
+
   background-size: cover;
   background-position: center;
-  color: white;
 }
 
-/* ===== NAVBAR ===== */
+/* ================= NAVBAR ================= */
 .navbar {
-  backdrop-filter: blur(10px);
-  background: rgba(0,0,0,0.6);
-  padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  padding: 15px 30px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
 }
 
 .navbar h1 {
@@ -30,15 +34,16 @@ body {
 }
 
 .navbar button {
-  background: linear-gradient(135deg,#38bdf8,#2563eb);
-  border: none;
-  padding: 10px 18px;
-  color: white;
+  padding: 10px 20px;
   border-radius: 25px;
+  border: none;
   cursor: pointer;
+  color: white;
+
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
 }
 
-/* ===== HERO ===== */
+/* ================= HERO ================= */
 .hero {
   text-align: center;
   padding: 60px 20px 30px;
@@ -53,7 +58,7 @@ body {
   opacity: 0.85;
 }
 
-/* ===== STATS ===== */
+/* ================= STATS ================= */
 .stats {
   display: flex;
   justify-content: center;
@@ -66,6 +71,7 @@ body {
   padding: 20px;
   border-radius: 20px;
   text-align: center;
+
   box-shadow: 0 0 30px rgba(0,0,0,0.6);
   animation: float 3s ease-in-out infinite;
 }
@@ -80,70 +86,87 @@ body {
 }
 
 .stat.green {
-  background: linear-gradient(135deg,#22c55e,#4ade80);
+  background: linear-gradient(135deg, #22c55e, #4ade80);
 }
 
 .stat.red {
-  background: linear-gradient(135deg,#ef4444,#f87171);
+  background: linear-gradient(135deg, #ef4444, #f87171);
 }
 
-/* ===== FLOAT ANIMATION ===== */
+/* Floating animation */
 @keyframes float {
-  0%,100% { transform: translateY(0); }
+  0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
 }
 
-/* ===== SLOT GRID ===== */
+/* ================= SLOT GRID ================= */
 .slot-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 30px;
   padding: 40px;
 }
 
-/* ===== SLOT CARD ===== */
+/* ================= SLOT (OUTER) ================= */
 .slot {
+  perspective: 1200px;   /* Needed for 3D effect */
+}
+
+/* ================= SLOT INNER (ANIMATED) ================= */
+.slot-inner {
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(15px);
+
   border-radius: 20px;
   padding: 25px;
   text-align: center;
+
   box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+
   transition: transform 0.6s ease, box-shadow 0.6s ease;
-  position: relative;
 }
 
-/* 🔄 ROTATION ANIMATION */
-.slot:hover {
-  transform: rotateY(180deg) scale(1.05);
+/* ✅ SAFE HOVER ANIMATION */
+.slot:hover .slot-inner {
+  transform: scale(1.08) translateY(-10px);
   box-shadow: 0 25px 60px rgba(0,0,0,0.9);
 }
 
-/* COLOR STRIP */
-.slot::before {
+/* ================= STATUS STRIP ================= */
+.slot-inner::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   height: 6px;
   width: 100%;
+  border-radius: 20px 20px 0 0;
 }
 
-.slot.available::before { background: #22c55e; }
-.slot.occupied::before  { background: #ef4444; }
-.slot.reserved::before  { background: #f59e0b; }
+.slot.available .slot-inner::before {
+  background: #22c55e;
+}
 
-/* SLOT TEXT */
-.slot h3 {
+.slot.occupied .slot-inner::before {
+  background: #ef4444;
+}
+
+.slot.reserved .slot-inner::before {
+  background: #f59e0b;
+}
+
+/* ================= SLOT TEXT ================= */
+.slot-inner h3 {
   font-size: 24px;
+  margin-top: 10px;
 }
 
-.slot p {
+.slot-inner p {
   opacity: 0.9;
 }
 
-/* BUTTON */
-.slot button {
+/* ================= BUTTONS ================= */
+.slot-inner button {
   margin-top: 15px;
   padding: 10px 20px;
   border-radius: 20px;
@@ -152,16 +175,18 @@ body {
   cursor: pointer;
 }
 
-/* BUTTON COLORS */
+/* Button colors */
 .slot.available button {
-  background: linear-gradient(135deg,#22c55e,#4ade80);
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  color: black;
 }
 
 .slot.reserved button {
-  background: linear-gradient(135deg,#f59e0b,#fbbf24);
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: black;
 }
 
-/* ===== FOOTER ===== */
+/* ================= FOOTER ================= */
 footer {
   text-align: center;
   padding: 20px;
