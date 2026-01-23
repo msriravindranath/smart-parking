@@ -13,7 +13,7 @@
       font-family: 'Poppins', sans-serif;
       color: white;
       background:
-        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+        linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
         url("https://images.unsplash.com/photo-1603386329225-868f9b1ee6c9");
       background-size: cover;
       background-position: center;
@@ -23,16 +23,23 @@
 
     h2 {
       margin-top: 30px;
+      font-size: 32px;
+    }
+
+    /* ===== GRID ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      padding: 40px;
     }
 
     /* ===== CARD ===== */
     .card {
       background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
       padding: 25px;
-      border-radius: 18px;
-      width: 320px;
-      margin: 30px auto;
+      border-radius: 20px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.6);
       animation: fadeUp 0.6s ease;
     }
@@ -45,162 +52,111 @@
     .available { color: #4ade80; font-weight: bold; }
     .occupied { color: #f87171; font-weight: bold; }
 
-    /* ===== MODAL ===== */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(6px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-box {
-      background: rgba(255,255,255,0.15);
-      padding: 30px;
-      border-radius: 20px;
-      width: 320px;
-    }
-
-    select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      border-radius: 12px;
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-    }
-
     button {
-      background: linear-gradient(135deg,#22c55e,#4ade80);
+      margin-top: 15px;
+      padding: 12px;
+      width: 100%;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
       font-weight: bold;
+      font-size: 14px;
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: black;
     }
   </style>
 </head>
 
 <body>
 
-<h2>📍 Parking Locations Overview</h2>
+<h2>📍 Parking Locations</h2>
 
-<!-- LOCATION SELECT MODAL -->
-<div class="modal" id="locationModal">
-  <div class="modal-box">
-    <h3>Select Parking Location</h3>
-    <select id="locationSelect"></select>
-    <button onclick="confirmLocation()">View & Book</button>
-  </div>
-</div>
-
-<!-- LOCATION SUMMARY -->
-<div id="list"></div>
+<div class="grid" id="locations"></div>
 
 <script>
 /* ======================================
    CONFIG
 ====================================== */
 
-const SPREADSHEET_ID = "1N9di09mm0SajrbJo-jeLVgrvMJrpFTUWf6MjamY5gWg";
-const BASE_URL =
-  `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+const CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-/* List your sheets here (default names are fine) */
-const SHEETS = ["Sheet1", "Sheet2", "Sheet3", "Sheet4"];
-
-/* ======================================
-   STATE
-====================================== */
-
-let selectedSheet = null;
-let currentData = null;
+/*
+  Sheet structure:
+  Row 1 → headers
+  Row 2+ → locations
+*/
 
 /* ======================================
-   LOAD LOCATIONS
+   LOAD ALL LOCATIONS
 ====================================== */
 
-function loadLocationList() {
-  const dropdown = document.getElementById("locationSelect");
-  dropdown.innerHTML = "";
-
-  SHEETS.forEach(sheet => {
-    const opt = document.createElement("option");
-    opt.value = sheet;
-    opt.textContent = sheet;
-    dropdown.appendChild(opt);
-  });
-}
-
-/* ======================================
-   CONFIRM LOCATION
-====================================== */
-
-function confirmLocation() {
-  selectedSheet = document.getElementById("locationSelect").value;
-  localStorage.setItem("selectedSheet", selectedSheet);
-
-  document.getElementById("locationModal").style.display = "none";
-  loadLocationData();
-}
-
-/* ======================================
-   LOAD SHEET DATA
-====================================== */
-
-function loadLocationData() {
-  const url = `${BASE_URL}&sheet=${selectedSheet}&nocache=${Date.now()}`;
-
-  fetch(url)
+function loadLocations() {
+  fetch(CSV_URL + "&t=" + Date.now())
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
       if (rows.length < 2) return;
 
-      const headers = rows[0].split(",");
-      const values = rows[1].split(",");
+      const container = document.getElementById("locations");
+      container.innerHTML = "";
 
-      const place = values[0];
-      let available = 0;
-      let occupied = 0;
+      // Start from row 2 (index 1)
+      for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].split(",");
+        const place = cells[0];
+        const slots = cells.slice(1);
 
-      for (let i = 1; i < headers.length; i++) {
-        if (values[i] === "FILLED") occupied++;
-        else available++;
+        let available = 0;
+        let occupied = 0;
+
+        slots.forEach(s => {
+          if (s === "FILLED") occupied++;
+          else available++;
+        });
+
+        renderCard(place, slots.length, available, occupied, i + 1);
       }
-
-      renderCard(place, headers.length - 1, available, occupied);
     })
-    .catch(err => console.error("CSV load error:", err));
+    .catch(err => console.error("CSV error:", err));
 }
 
 /* ======================================
-   RENDER CARD
+   RENDER LOCATION CARD
 ====================================== */
 
-function renderCard(place, total, free, busy) {
-  document.getElementById("list").innerHTML = `
-    <div class="card">
-      <h3>${place}</h3>
-      <p>Total Slots: <b>${total}</b></p>
-      <p class="available">Available: ${free}</p>
-      <p class="occupied">Occupied: ${busy}</p>
-    </div>
+function renderCard(place, total, free, busy, rowNumber) {
+  const container = document.getElementById("locations");
+
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML = `
+    <h3>${place}</h3>
+    <p>Total Slots: <b>${total}</b></p>
+    <p class="available">Available: ${free}</p>
+    <p class="occupied">Occupied: ${busy}</p>
+    <button onclick="openBooking(${rowNumber})">View & Book</button>
   `;
+
+  container.appendChild(div);
+}
+
+/* ======================================
+   OPEN BOOKING PAGE
+====================================== */
+
+function openBooking(row) {
+  localStorage.setItem("selectedRow", row);
+  window.location.href = "index.html";
 }
 
 /* ======================================
    INIT
 ====================================== */
 
-loadLocationList();
-
-/* Auto-refresh selected location */
-setInterval(() => {
-  if (selectedSheet) {
-    loadLocationData();
-  }
-}, 15000);
+loadLocations();
+setInterval(loadLocations, 15000); // auto-refresh
 </script>
 
 </body>
