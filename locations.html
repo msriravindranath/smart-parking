@@ -60,7 +60,7 @@
       background: rgba(255,255,255,0.15);
       padding: 30px;
       border-radius: 20px;
-      width: 300px;
+      width: 320px;
     }
 
     select, button {
@@ -71,6 +71,7 @@
       border: none;
       font-size: 14px;
       cursor: pointer;
+      font-family: 'Poppins', sans-serif;
     }
 
     button {
@@ -87,73 +88,117 @@
 <!-- LOCATION SELECT MODAL -->
 <div class="modal" id="locationModal">
   <div class="modal-box">
-    <h3>Select Location</h3>
+    <h3>Select Parking Location</h3>
     <select id="locationSelect"></select>
-    <button onclick="confirmLocation()">View Status</button>
+    <button onclick="confirmLocation()">View & Book</button>
   </div>
 </div>
 
-<!-- DISPLAY -->
+<!-- LOCATION SUMMARY -->
 <div id="list"></div>
 
 <script>
-const sheetURL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
+/* ======================================
+   CONFIG
+====================================== */
 
-let rowsData = [];
-let selectedIndex = null;
+const SPREADSHEET_ID = "1N9di09mm0sajrbo-jeLVgrWJprFTUWf6MjamY5gWg";
+const BASE_URL =
+  `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
 
-function loadLocations() {
-  fetch(sheetURL + "&t=" + Date.now())
+/* List your sheets here (default names are fine) */
+const SHEETS = ["Sheet1", "Sheet2", "Sheet3", "Sheet4"];
+
+/* ======================================
+   STATE
+====================================== */
+
+let selectedSheet = null;
+let currentData = null;
+
+/* ======================================
+   LOAD LOCATIONS
+====================================== */
+
+function loadLocationList() {
+  const dropdown = document.getElementById("locationSelect");
+  dropdown.innerHTML = "";
+
+  SHEETS.forEach(sheet => {
+    const opt = document.createElement("option");
+    opt.value = sheet;
+    opt.textContent = sheet;
+    dropdown.appendChild(opt);
+  });
+}
+
+/* ======================================
+   CONFIRM LOCATION
+====================================== */
+
+function confirmLocation() {
+  selectedSheet = document.getElementById("locationSelect").value;
+  localStorage.setItem("selectedSheet", selectedSheet);
+
+  document.getElementById("locationModal").style.display = "none";
+  loadLocationData();
+}
+
+/* ======================================
+   LOAD SHEET DATA
+====================================== */
+
+function loadLocationData() {
+  const url = `${BASE_URL}&sheet=${selectedSheet}&nocache=${Date.now()}`;
+
+  fetch(url)
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
-      rowsData = rows.slice(1).map(r => r.split(","));
+      if (rows.length < 2) return;
 
-      const dropdown = document.getElementById("locationSelect");
-      dropdown.innerHTML = "";
+      const headers = rows[0].split(",");
+      const values = rows[1].split(",");
 
-      rowsData.forEach((r, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = r[0];
-        dropdown.appendChild(opt);
-      });
-    });
+      const place = values[0];
+      let available = 0;
+      let occupied = 0;
+
+      for (let i = 1; i < headers.length; i++) {
+        if (values[i] === "FILLED") occupied++;
+        else available++;
+      }
+
+      renderCard(place, headers.length - 1, available, occupied);
+    })
+    .catch(err => console.error("CSV load error:", err));
 }
 
-function confirmLocation() {
-  selectedIndex = document.getElementById("locationSelect").value;
-  document.getElementById("locationModal").style.display = "none";
-  renderCard();
-}
+/* ======================================
+   RENDER CARD
+====================================== */
 
-function renderCard() {
-  const cells = rowsData[selectedIndex];
-  const place = cells[0];
-  let available = 0, occupied = 0;
-
-  for (let i = 1; i <= 4; i++) {
-    if (cells[i] === "FILLED") occupied++;
-    else available++;
-  }
-
+function renderCard(place, total, free, busy) {
   document.getElementById("list").innerHTML = `
     <div class="card">
       <h3>${place}</h3>
-      <p>Total Slots: <b>4</b></p>
-      <p class="available">Available: ${available}</p>
-      <p class="occupied">Occupied: ${occupied}</p>
+      <p>Total Slots: <b>${total}</b></p>
+      <p class="available">Available: ${free}</p>
+      <p class="occupied">Occupied: ${busy}</p>
     </div>
   `;
 }
 
-// Initial
-loadLocations();
+/* ======================================
+   INIT
+====================================== */
+
+loadLocationList();
+
+/* Auto-refresh selected location */
 setInterval(() => {
-  if (selectedIndex !== null) {
-    loadLocations();
-    setTimeout(renderCard, 300);
+  if (selectedSheet) {
+    loadLocationData();
   }
 }, 15000);
 </script>
