@@ -1,93 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Parking Locations Summary</title>
+  <meta charset="UTF-8">
+  <title>Parking Locations Overview</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      background:
+        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+        url("https://images.unsplash.com/photo-1603386329225-868f9b1ee6c9");
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
       text-align: center;
     }
+
+    h2 {
+      margin-top: 30px;
+    }
+
+    /* ===== CARD ===== */
     .card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 12px;
-      border-radius: 8px;
-      width: 280px;
-      display: inline-block;
-      background: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      padding: 25px;
+      border-radius: 18px;
+      width: 320px;
+      margin: 30px auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      animation: fadeUp 0.6s ease;
     }
-    .available {
-      color: green;
-      font-weight: bold;
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .occupied {
-      color: red;
+
+    .available { color: #4ade80; font-weight: bold; }
+    .occupied { color: #f87171; font-weight: bold; }
+
+    /* ===== MODAL ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      border-radius: 20px;
+      width: 300px;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 12px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button {
+      background: linear-gradient(135deg,#22c55e,#4ade80);
       font-weight: bold;
     }
   </style>
 </head>
+
 <body>
 
-<h2>🚗 Parking Locations Overview</h2>
+<h2>📍 Parking Locations Overview</h2>
+
+<!-- LOCATION SELECT MODAL -->
+<div class="modal" id="locationModal">
+  <div class="modal-box">
+    <h3>Select Location</h3>
+    <select id="locationSelect"></select>
+    <button onclick="confirmLocation()">View Status</button>
+  </div>
+</div>
+
+<!-- DISPLAY -->
 <div id="list"></div>
 
 <script>
-// 🔹 CSV link (same as slot page)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-function loadLocationData() {
-  fetch(sheetURL + "&t=" + Date.now()) // 🔥 cache-busting
+let rowsData = [];
+let selectedIndex = null;
+
+function loadLocations() {
+  fetch(sheetURL + "&t=" + Date.now())
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n");
-      if (rows.length < 2) return;
+      rowsData = rows.slice(1).map(r => r.split(","));
 
-      const cells = rows[1].split(",");
+      const dropdown = document.getElementById("locationSelect");
+      dropdown.innerHTML = "";
 
-      const place = cells[0];
-      const totalSlots = 4;
-
-      let availableSlots = 0;
-      let occupiedSlots = 0;
-
-      // Slot-wise evaluation
-      for (let i = 1; i <= 7; i += 2) {
-        const status = cells[i];     // SlotX_Status
-        const booked = cells[i + 1]; // SlotX_Booked
-
-        if (booked === "YES" || status === "FILLED") {
-          occupiedSlots++;
-        } else {
-          availableSlots++;
-        }
-      }
-
-      const container = document.getElementById("list");
-      container.innerHTML = ""; // clear old data
-
-      const div = document.createElement("div");
-      div.className = "card";
-
-      div.innerHTML = `
-        <h3>📍 ${place}</h3>
-        <p>Total Slots: <b>${totalSlots}</b></p>
-        <p class="available">Available: ${availableSlots}</p>
-        <p class="occupied">Occupied / Booked: ${occupiedSlots}</p>
-      `;
-
-      container.appendChild(div);
-    })
-    .catch(err => console.error("Location CSV error:", err));
+      rowsData.forEach((r, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = r[0];
+        dropdown.appendChild(opt);
+      });
+    });
 }
 
-// Initial load
-loadLocationData();
+function confirmLocation() {
+  selectedIndex = document.getElementById("locationSelect").value;
+  document.getElementById("locationModal").style.display = "none";
+  renderCard();
+}
 
-// Auto-refresh every 15 seconds
-setInterval(loadLocationData, 15000);
+function renderCard() {
+  const cells = rowsData[selectedIndex];
+  const place = cells[0];
+  let available = 0, occupied = 0;
+
+  for (let i = 1; i <= 4; i++) {
+    if (cells[i] === "FILLED") occupied++;
+    else available++;
+  }
+
+  document.getElementById("list").innerHTML = `
+    <div class="card">
+      <h3>${place}</h3>
+      <p>Total Slots: <b>4</b></p>
+      <p class="available">Available: ${available}</p>
+      <p class="occupied">Occupied: ${occupied}</p>
+    </div>
+  `;
+}
+
+// Initial
+loadLocations();
+setInterval(() => {
+  if (selectedIndex !== null) {
+    loadLocations();
+    setTimeout(renderCard, 300);
+  }
+}, 15000);
 </script>
 
 </body>
