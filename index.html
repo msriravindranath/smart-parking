@@ -5,7 +5,10 @@
   <title>Smart Parking Dashboard</title>
 
   <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+    rel="stylesheet"
+  >
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -29,34 +32,44 @@
       <h3 id="freeCount">--</h3>
       <span>Available Slots</span>
     </div>
+
     <div class="stat red">
       <h3 id="occupiedCount">--</h3>
       <span>Occupied Slots</span>
     </div>
+
+    <div class="stat orange">
+      <h3 id="reservedCount">--</h3>
+      <span>Reserved Slots</span>
+    </div>
   </section>
-
-  <!-- 🔥 BOOKING FORM (REQUIRED) -->
-  <div id="bookingForm" style="display:none; text-align:center; margin:30px;">
-    <h3>Complete Booking</h3>
-
-    <input
-      type="text"
-      id="userName"
-      placeholder="Enter your name"
-      required
-    ><br><br>
-
-    <input
-      type="time"
-      id="reserveTime"
-      required
-    ><br><br>
-
-    <button onclick="submitBooking()">Confirm Booking</button>
-  </div>
 
   <!-- SLOT GRID -->
   <main id="slots" class="slot-grid"></main>
+
+  <!-- ===== BOOKING MODAL ===== -->
+  <div id="bookingModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeBooking()">×</span>
+
+      <h3>Reserve Parking Slot</h3>
+
+      <input
+        type="text"
+        id="userName"
+        placeholder="Your Name"
+        required
+      >
+
+      <input
+        type="time"
+        id="reserveTime"
+        required
+      >
+
+      <button onclick="submitBooking()">Confirm Booking</button>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer>
