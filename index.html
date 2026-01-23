@@ -2,47 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Parking Booking System</title>
+  <title>Smart Parking System</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>🚗 Smart Parking Booking System</h1>
+  <!-- HEADER -->
+  <header>
+    <h1>🚗 Smart Parking System</h1>
+    <p>Live Parking Slot Monitoring</p>
+  </header>
 
-  <!-- OPTIONAL MANUAL REFRESH -->
-  <button onclick="loadSlotData()">🔄 Refresh Slot Status</button>
-
-  <!-- PLACE FILTER -->
-  <select id="placeFilter">
-    <option value="All">All Places</option>
-  </select>
-
-  <!-- BOOKING FORM -->
-  <div id="bookingForm" style="display:none; margin-top:20px;">
-    <h3>Complete Booking</h3>
-
-    <input type="hidden" id="formSlotId">
-
-    <input
-      type="text"
-      id="userName"
-      placeholder="Enter your name"
-      required
-    >
-    <br><br>
-
-    <input
-      type="time"
-      id="reserveTime"
-      required
-    >
-    <br><br>
-
-    <button onclick="submitBooking()">Confirm Booking</button>
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <button class="refresh-btn" onclick="loadSlotData()">🔄 Refresh Status</button>
   </div>
 
-  <!-- SLOT DISPLAY -->
-  <div id="slots"></div>
+  <!-- SLOT CONTAINER -->
+  <div id="slots" class="slot-container">
+    <!-- Slots injected by JavaScript -->
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Powered by ESP32 & Google Sheets</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
