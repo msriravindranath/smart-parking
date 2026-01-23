@@ -14,6 +14,23 @@
 </head>
 <body>
 
+  <!-- ================= LOCATION SELECT MODAL ================= -->
+  <div id="locationModal" class="modal">
+    <div class="modal-content">
+      <h3>Select Parking Location</h3>
+
+      <select id="locationSelect">
+        <option value="">-- Choose Location --</option>
+        <option value="Sheet1">Santhiram Engineering College</option>
+        <option value="Sheet2">City Mall Parking</option>
+        <option value="Sheet3">Railway Station Parking</option>
+        <option value="Sheet4">Bus Stand Parking</option>
+      </select>
+
+      <button onclick="confirmLocation()">Continue</button>
+    </div>
+  </div>
+
   <!-- NAVBAR -->
   <nav class="navbar">
     <h1>Smart Parking System</h1>
@@ -47,7 +64,7 @@
   <!-- SLOT GRID -->
   <main id="slots" class="slot-grid"></main>
 
-  <!-- ===== BOOKING MODAL ===== -->
+  <!-- ================= BOOKING MODAL ================= -->
   <div id="bookingModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeBooking()">×</span>
@@ -77,5 +94,30 @@
   </footer>
 
   <script src="script.js"></script>
+
+  <!-- ================= LOCATION SELECTION SCRIPT ================= -->
+  <script>
+    function getSheetFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("sheet");
+    }
+
+    function confirmLocation() {
+      const sheet = document.getElementById("locationSelect").value;
+      if (!sheet) {
+        alert("Please select a location");
+        return;
+      }
+      window.location.href = `index.html?sheet=${sheet}`;
+    }
+
+    // Show location modal only if no sheet is selected
+    window.onload = () => {
+      if (!getSheetFromURL()) {
+        document.getElementById("locationModal").style.display = "block";
+      }
+    };
+  </script>
+
 </body>
 </html>
