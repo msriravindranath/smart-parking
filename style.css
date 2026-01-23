@@ -38,9 +38,10 @@ body {
 
 .occupied {
     border-left: 6px solid red;
+    opacity: 0.85;
 }
 
-/* BUTTON COMMON */
+/* BUTTONS */
 button {
     padding: 8px 15px;
     margin-top: 10px;
@@ -68,11 +69,6 @@ button {
 
 .slot.reserved button:hover {
     background-color: darkorange;
-}
-
-/* OCCUPIED (NO BUTTON) */
-.slot.occupied {
-    opacity: 0.85;
 }
 
 /* BOOKING FORM */
