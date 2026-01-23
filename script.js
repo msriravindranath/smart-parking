@@ -1,10 +1,10 @@
 // ========= CONFIG =========
 
-// Google Sheet CSV (initial state only)
+// Google Sheet CSV (initial snapshot only)
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
-// Reservation expiry (30 minutes)
+// Reservation expiry time (30 minutes)
 const RESERVATION_DURATION = 30 * 60 * 1000;
 
 // ========= STATE =========
@@ -12,7 +12,7 @@ let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// 🔐 Load reservations
+// 🔐 Load reservations from localStorage
 let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
 
 // ========= CLEAN EXPIRED BOOKINGS =========
@@ -32,7 +32,7 @@ function cleanExpiredBookings() {
   }
 }
 
-// ========= LOAD SLOT DATA (MANUAL / ONCE) =========
+// ========= LOAD SLOT DATA =========
 function loadSlotData() {
   cleanExpiredBookings();
 
@@ -54,13 +54,12 @@ function loadSlotData() {
         { id: "Slot 4", status: c[7] }
       ];
 
+      // 🔁 Recompute slot states every time
       allSlots = incoming.map(slot => {
-        // Reservation has highest priority
         if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
 
-        // Sensor snapshot (initial)
         if (slot.status === "FILLED") {
           return { ...slot, finalState: "occupied" };
         }
@@ -71,7 +70,7 @@ function loadSlotData() {
       populateDropdown([currentPlace]);
       displaySlots(allSlots);
     })
-    .catch(err => console.error("CSV error:", err));
+    .catch(err => console.error("CSV fetch error:", err));
 }
 
 // ========= DROPDOWN =========
@@ -150,7 +149,7 @@ function submitBooking() {
   alert("✅ Booking Confirmed (Valid for 30 minutes)");
   document.getElementById("bookingForm").style.display = "none";
 
-  displaySlots(allSlots);
+  loadSlotData(); // ✅ recompute state
 }
 
 // ========= UNRESERVE =========
@@ -165,8 +164,8 @@ function unreserveSlot(slotId) {
   localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
 
   alert(`✅ ${slotId} is now available`);
-  displaySlots(allSlots);
+  loadSlotData(); // ✅ recompute state
 }
 
 // ========= INIT =========
-loadSlotData(); // load ONCE
+loadSlotData(); // load once
