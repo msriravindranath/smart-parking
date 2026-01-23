@@ -125,4 +125,4 @@ function submitBooking() {
 loadSlotData();
 
 // 🔁 Auto-refresh (safe)
-setInterval(loadSlotData, 15000);
+setInterval(loadSlotData, 10000);
