@@ -1,41 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Smart Parking Booking System</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🚗 Smart Parking Booking System</h1>
+  <h1>🚗 Smart Parking Booking System</h1>
 
-<select id="placeFilter">
-  <option value="All">All Places</option>
-</select>
+  <!-- PLACE FILTER -->
+  <select id="placeFilter">
+    <option value="All">All Places</option>
+  </select>
 
-<!-- BOOKING FORM -->
-<div id="bookingForm" style="display:none; margin-top:20px;">
-  <h3>Complete Booking</h3>
+  <!-- BOOKING FORM -->
+  <div id="bookingForm" style="display:none; margin-top:20px;">
+    <h3>Complete Booking</h3>
 
-  <input type="hidden" id="formSlotId">
+    <input type="hidden" id="formSlotId">
 
-  <input
-    type="text"
-    id="userName"
-    placeholder="Enter your name"
-    required
-  ><br><br>
+    <input
+      type="text"
+      id="userName"
+      placeholder="Enter your name"
+      required
+    >
+    <br><br>
 
-  <input
-    type="time"
-    id="reserveTime"
-    required
-  ><br><br>
+    <input
+      type="time"
+      id="reserveTime"
+      required
+    >
+    <br><br>
 
-  <button onclick="submitBooking()">Confirm Booking</button>
-</div>
+    <button onclick="submitBooking()">Confirm Booking</button>
+  </div>
 
-<div id="slots"></div>
+  <!-- SLOTS DISPLAY -->
+  <div id="slots"></div>
 
-<script src="script.js"></script>
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
+
 </body>
 </html>
