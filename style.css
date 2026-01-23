@@ -1,52 +1,139 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== BODY ===== */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
-    text-align: center;
-    margin: 0;
-    padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(to right, #eef2f3, #f9f9f9);
+  color: #333;
+  min-height: 100vh;
 }
 
-#slots {
-    margin-top: 20px;
+/* ===== HEADER ===== */
+header {
+  background: #1e293b;
+  color: white;
+  padding: 20px;
+  text-align: center;
 }
 
+header h1 {
+  margin-bottom: 5px;
+}
+
+header p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* ===== ACTION BAR ===== */
+.action-bar {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.refresh-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.refresh-btn:hover {
+  background-color: #1e40af;
+}
+
+/* ===== SLOT CONTAINER ===== */
+.slot-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 20px;
+}
+
+/* ===== SLOT CARD ===== */
 .slot {
-    display: inline-block;
-    width: 220px;
-    margin: 15px;
-    padding: 15px;
-    border-radius: 10px;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  width: 230px;
+  background-color: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.available {
-    border-left: 6px solid green;
+.slot:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
 }
 
-.reserved {
-    border-left: 6px solid orange;
+/* ===== SLOT STATUS COLORS ===== */
+.slot.available {
+  border-top: 6px solid #22c55e;
 }
 
-.occupied {
-    border-left: 6px solid red;
-    opacity: 0.85;
+.slot.occupied {
+  border-top: 6px solid #ef4444;
 }
 
-button {
-    padding: 8px 15px;
-    margin-top: 10px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
+.slot.reserved {
+  border-top: 6px solid #f59e0b;
 }
 
+/* ===== SLOT TEXT ===== */
+.slot h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.slot p {
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+/* ===== BUTTONS ===== */
+.slot button {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Reserve */
 .slot.available button {
-    background-color: green;
-    color: white;
+  background-color: #22c55e;
+  color: white;
 }
 
+.slot.available button:hover {
+  background-color: #16a34a;
+}
+
+/* Unreserve */
 .slot.reserved button {
-    background-color: orange;
-    color: white;
+  background-color: #f59e0b;
+  color: white;
+}
+
+.slot.reserved button:hover {
+  background-color: #d97706;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 15px;
+  font-size: 13px;
+  color: #555;
+  margin-top: 30px;
 }
