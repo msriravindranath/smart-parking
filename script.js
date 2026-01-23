@@ -4,18 +4,38 @@
 const sheetURL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
 
+// Reservation expiry time (30 mins)
+const RESERVATION_DURATION = 30 * 60 * 1000;
+
 // ========= STATE =========
 let allSlots = [];
 let selectedSlotId = null;
 let currentPlace = "";
 
-// 🔐 Persistent booking memory
-const bookedSlots = new Set(
-  JSON.parse(localStorage.getItem("bookedSlots") || "[]")
-);
+// 🔐 Persistent booking memory with time
+let bookedSlots = JSON.parse(localStorage.getItem("bookedSlots") || "{}");
+
+// ========= CLEAN EXPIRED BOOKINGS =========
+function cleanExpiredBookings() {
+  const now = Date.now();
+  let changed = false;
+
+  Object.keys(bookedSlots).forEach(slotId => {
+    if (now - bookedSlots[slotId].reservedAt > RESERVATION_DURATION) {
+      delete bookedSlots[slotId];
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
+  }
+}
 
 // ========= LOAD SLOT DATA =========
 function loadSlotData() {
+  cleanExpiredBookings();
+
   fetch(sheetURL + "&t=" + Date.now())
     .then(res => res.text())
     .then(csv => {
@@ -33,8 +53,8 @@ function loadSlotData() {
       ];
 
       allSlots = incoming.map(slot => {
-        // 🔒 Booking always wins
-        if (bookedSlots.has(slot.id)) {
+        // 🔒 Booking check (with expiry)
+        if (bookedSlots[slot.id]) {
           return { ...slot, finalState: "reserved" };
         }
 
@@ -101,7 +121,7 @@ function reserveSlot(slotId) {
   document.getElementById("bookingForm").style.display = "block";
 }
 
-// ========= BOOKING (FRONTEND ONLY + PERSISTENT) =========
+// ========= BOOKING (FRONTEND ONLY + TIMED) =========
 function submitBooking() {
   const name = document.getElementById("userName").value;
   const time = document.getElementById("reserveTime").value;
@@ -111,11 +131,16 @@ function submitBooking() {
     return;
   }
 
-  // 🔒 Persist booking
-  bookedSlots.add(selectedSlotId);
-  localStorage.setItem("bookedSlots", JSON.stringify([...bookedSlots]));
+  // 🔒 Save booking with timestamp
+  bookedSlots[selectedSlotId] = {
+    name,
+    time,
+    reservedAt: Date.now()
+  };
 
-  alert("✅ Booking Confirmed!");
+  localStorage.setItem("bookedSlots", JSON.stringify(bookedSlots));
+
+  alert("✅ Booking Confirmed (Valid for 30 minutes)");
 
   document.getElementById("bookingForm").style.display = "none";
   displaySlots(allSlots);
@@ -124,5 +149,5 @@ function submitBooking() {
 // ========= INIT =========
 loadSlotData();
 
-// 🔁 Auto-refresh (safe)
+// 🔁 Auto-refresh
 setInterval(loadSlotData, 10000);
