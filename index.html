@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Smart Parking Dashboard</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- LOCATION SELECT MODAL -->
+<!-- ================= LOCATION SELECT MODAL ================= -->
 <div id="locationModal" class="modal">
   <div class="modal-content">
     <h3>Select Parking Location</h3>
@@ -23,24 +25,38 @@
   </div>
 </div>
 
+<!-- ================= NAVBAR ================= -->
 <nav class="navbar">
   <h1>Smart Parking System</h1>
   <button onclick="loadSlotData()">🔄 Refresh</button>
 </nav>
 
+<!-- ================= HERO ================= -->
 <section class="hero">
   <h2>Smart Park</h2>
   <p>IoT Based · Real-Time Monitoring</p>
 </section>
 
+<!-- ================= STATS ================= -->
 <section class="stats">
-  <div class="stat green"><h3 id="freeCount">--</h3><span>Available</span></div>
-  <div class="stat red"><h3 id="occupiedCount">--</h3><span>Occupied</span></div>
-  <div class="stat orange"><h3 id="reservedCount">--</h3><span>Reserved</span></div>
+  <div class="stat green">
+    <h3 id="freeCount">--</h3>
+    <span>Available</span>
+  </div>
+  <div class="stat red">
+    <h3 id="occupiedCount">--</h3>
+    <span>Occupied</span>
+  </div>
+  <div class="stat orange">
+    <h3 id="reservedCount">--</h3>
+    <span>Reserved</span>
+  </div>
 </section>
 
+<!-- ================= SLOT GRID ================= -->
 <main id="slots" class="slot-grid"></main>
 
+<!-- ================= BOOKING MODAL ================= -->
 <div id="bookingModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeBooking()">×</span>
@@ -51,14 +67,34 @@
   </div>
 </div>
 
-<footer><p>Smart Parking System</p></footer>
+<!-- ================= CUSTOM ALERT MODAL ================= -->
+<div id="alertModal" class="modal">
+  <div class="modal-content">
+    <h3 id="alertText"></h3>
+    <button onclick="closeAlert()">OK</button>
+  </div>
+</div>
+
+<!-- ================= CUSTOM CONFIRM MODAL ================= -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <h3 id="confirmText"></h3>
+    <button onclick="confirmYes()">Yes</button>
+    <button onclick="confirmNo()">No</button>
+  </div>
+</div>
+
+<footer>
+  <p>Smart Parking System</p>
+</footer>
 
 <script src="script.js"></script>
 
 <script>
+/* ================= LOCATION HANDLING ================= */
 function confirmLocation() {
   const row = document.getElementById("locationSelect").value;
-  if (!row) return alert("Select location");
+  if (!row) return alert("Please select a location");
   localStorage.setItem("selectedRow", row);
   document.getElementById("locationModal").style.display = "none";
   loadSlotData();
@@ -69,6 +105,35 @@ window.onload = () => {
     document.getElementById("locationModal").style.display = "block";
   }
 };
+
+/* ================= CUSTOM ALERT ================= */
+let confirmCallback = null;
+
+window.alert = function (msg) {
+  document.getElementById("alertText").innerText = msg;
+  document.getElementById("alertModal").style.display = "block";
+};
+
+function closeAlert() {
+  document.getElementById("alertModal").style.display = "none";
+}
+
+/* ================= CUSTOM CONFIRM ================= */
+window.confirm = function (msg) {
+  document.getElementById("confirmText").innerText = msg;
+  document.getElementById("confirmModal").style.display = "block";
+  return new Promise(resolve => confirmCallback = resolve);
+};
+
+function confirmYes() {
+  document.getElementById("confirmModal").style.display = "none";
+  confirmCallback(true);
+}
+
+function confirmNo() {
+  document.getElementById("confirmModal").style.display = "none";
+  confirmCallback(false);
+}
 </script>
 
 </body>
