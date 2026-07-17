@@ -1,5 +1,5 @@
 const SHEET_NAME = "ParkingSlots";
-const SENSOR_API_KEY = "YOUR_SENSOR_API_KEY";
+const SENSOR_API_KEY = "SPV2_7Kx9Qm4Np8Rt2Wz6Yc3Hd5Lf1Bj0Gs";
 
 function doGet(e) {
   try {
