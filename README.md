@@ -446,6 +446,11 @@ The project was originally developed as an IoT-based parking prototype and has s
 
 The repository contains the reconstructed and refined project source code. Hardware prototype documentation and additional project images can be added as they become available.
 
+## Live Demo
+
+- **Project Website:**  https://sites.google.com/view/smartpark-iot/home
+- **Smart Parking Dashboard:** https://msriravindranath.github.io/smart-parking/
+
 ## Author
 
 M. Sree Ravindranath
