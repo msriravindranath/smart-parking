@@ -2,85 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="IoT-based smart parking dashboard for monitoring parking slot availability and reservations."
+  >
   <title>Smart Parking Dashboard</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+    rel="stylesheet"
+  >
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ================= LOCATION SELECT MODAL ================= -->
 <div id="locationModal" class="modal">
   <div class="modal-content">
     <h3>Select Parking Location</h3>
+
     <select id="locationSelect">
       <option value="">-- Choose Location --</option>
-      <option value="2">Santhiram Engineering College</option>
-      <option value="3">CMR Shopping Mall</option>
-      <option value="4">Bus Stand Nandyal</option>
-      <option value="5">Santhiram Hospital</option>
     </select>
-    <button onclick="confirmLocation()">Continue</button>
+
+    <button type="button" onclick="confirmLocation()">
+      Continue
+    </button>
   </div>
 </div>
 
-<!-- ================= NAVBAR ================= -->
 <nav class="navbar">
   <h1>Smart Parking System</h1>
-  <button onclick="loadSlotData()">🔄 Refresh</button>
+
+  <div>
+    <button type="button" onclick="changeLocation()">
+      Change Location
+    </button>
+
+    <button type="button" onclick="loadSlotData()">
+      Refresh
+    </button>
+  </div>
 </nav>
 
-<!-- ================= HERO ================= -->
 <section class="hero">
-  <h2>Smart Park</h2>
-  <p>IoT Based · Real-Time Monitoring</p>
+  <h2 id="locationTitle">Smart Park</h2>
+  <p>IoT-Based Parking Availability Monitoring</p>
 </section>
 
-<!-- ================= STATS ================= -->
 <section class="stats">
   <div class="stat green">
     <h3 id="freeCount">--</h3>
     <span>Available</span>
   </div>
+
   <div class="stat red">
     <h3 id="occupiedCount">--</h3>
     <span>Occupied</span>
   </div>
+
   <div class="stat orange">
     <h3 id="reservedCount">--</h3>
     <span>Reserved</span>
   </div>
 </section>
 
-<!-- ================= SLOT GRID ================= -->
 <main id="slots" class="slot-grid"></main>
 
-<!-- ================= BOOKING MODAL ================= -->
-<div id="bookingModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeBooking()">×</span>
-    <h3>Reserve Parking Slot</h3>
-    <input id="userName" placeholder="Your Name">
-    <input id="reserveTime" type="time">
-    <button onclick="submitBooking()">Confirm Booking</button>
-  </div>
-</div>
-
-<!-- ================= CUSTOM ALERT MODAL ================= -->
 <div id="alertModal" class="modal">
   <div class="modal-content">
     <h3 id="alertText"></h3>
-    <button onclick="closeAlert()">OK</button>
-  </div>
-</div>
 
-<!-- ================= CUSTOM CONFIRM MODAL ================= -->
-<div id="confirmModal" class="modal">
-  <div class="modal-content">
-    <h3 id="confirmText"></h3>
-    <button onclick="confirmYes()">Yes</button>
-    <button onclick="confirmNo()">No</button>
+    <button type="button" onclick="closeAlert()">
+      OK
+    </button>
   </div>
 </div>
 
@@ -91,49 +87,111 @@
 <script src="script.js"></script>
 
 <script>
-/* ================= LOCATION HANDLING ================= */
+async function loadLocations() {
+  const locationSelect = document.getElementById("locationSelect");
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}?action=getLocations`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(
+        data.error || "Unable to load parking locations."
+      );
+    }
+
+    locationSelect.innerHTML =
+      '<option value="">-- Choose Location --</option>';
+
+    data.locations.forEach(location => {
+      const option = document.createElement("option");
+
+      option.value = location.locationId;
+      option.textContent = location.locationName;
+
+      locationSelect.appendChild(option);
+    });
+
+    const selectedLocationId =
+      localStorage.getItem("selectedLocationId");
+
+    if (selectedLocationId) {
+      locationSelect.value = selectedLocationId;
+    }
+  } catch (error) {
+    console.error("Failed to load locations:", error);
+
+    showMessage(
+      "Unable to load parking locations. Please try again."
+    );
+  }
+}
+
 function confirmLocation() {
-  const row = document.getElementById("locationSelect").value;
-  if (!row) return alert("Please select a location");
-  localStorage.setItem("selectedRow", row);
-  document.getElementById("locationModal").style.display = "none";
+  const locationSelect =
+    document.getElementById("locationSelect");
+
+  const locationId = locationSelect.value;
+
+  if (!locationId) {
+    showMessage("Please select a parking location.");
+    return;
+  }
+
+  localStorage.setItem(
+    "selectedLocationId",
+    locationId
+  );
+
+  document.getElementById(
+    "locationModal"
+  ).style.display = "none";
+
   loadSlotData();
 }
 
-window.onload = () => {
-  if (!localStorage.getItem("selectedRow")) {
-    document.getElementById("locationModal").style.display = "block";
-  }
-};
+function changeLocation() {
+  document.getElementById(
+    "locationModal"
+  ).style.display = "block";
 
-/* ================= CUSTOM ALERT ================= */
-let confirmCallback = null;
-
-window.alert = function (msg) {
-  document.getElementById("alertText").innerText = msg;
-  document.getElementById("alertModal").style.display = "block";
-};
+  loadLocations();
+}
 
 function closeAlert() {
-  document.getElementById("alertModal").style.display = "none";
+  document.getElementById(
+    "alertModal"
+  ).style.display = "none";
 }
 
-/* ================= CUSTOM CONFIRM ================= */
-window.confirm = function (msg) {
-  document.getElementById("confirmText").innerText = msg;
-  document.getElementById("confirmModal").style.display = "block";
-  return new Promise(resolve => confirmCallback = resolve);
-};
+async function initializeDashboard() {
+  await loadLocations();
 
-function confirmYes() {
-  document.getElementById("confirmModal").style.display = "none";
-  confirmCallback(true);
+  const selectedLocationId =
+    localStorage.getItem("selectedLocationId");
+
+  if (!selectedLocationId) {
+    document.getElementById(
+      "locationModal"
+    ).style.display = "block";
+
+    return;
+  }
+
+  loadSlotData();
 }
 
-function confirmNo() {
-  document.getElementById("confirmModal").style.display = "none";
-  confirmCallback(false);
-}
+document.addEventListener(
+  "DOMContentLoaded",
+  initializeDashboard
+);
 </script>
 
 </body>
