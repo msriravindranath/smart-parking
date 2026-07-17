@@ -2,161 +2,236 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="description"
+    content="View parking locations and live parking slot availability."
+  >
   <title>Parking Locations Overview</title>
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap"
+    rel="stylesheet"
+  >
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: 'Poppins', sans-serif;
       color: white;
+      text-align: center;
       background:
-        linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
         url("https://images.unsplash.com/photo-1603386329225-868f9b1ee6c9");
       background-size: cover;
       background-position: center;
-      min-height: 100vh;
-      text-align: center;
+      background-attachment: fixed;
     }
 
-    h2 {
-      margin-top: 30px;
-      font-size: 32px;
+    h1 {
+      margin: 0;
+      padding-top: 40px;
+      font-size: 36px;
     }
 
-    /* ===== GRID ===== */
+    .subtitle {
+      margin-top: 8px;
+      opacity: 0.8;
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 30px;
       padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    /* ===== CARD ===== */
     .card {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(14px);
       padding: 25px;
       border-radius: 20px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
       animation: fadeUp 0.6s ease;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 21px;
+    }
+
+    .available {
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    .occupied {
+      color: #f87171;
+      font-weight: bold;
+    }
+
+    .reserved {
+      color: #fbbf24;
+      font-weight: bold;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: black;
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .message {
+      margin-top: 40px;
+      font-size: 18px;
+      opacity: 0.85;
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .available { color: #4ade80; font-weight: bold; }
-    .occupied { color: #f87171; font-weight: bold; }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 28px;
+      }
 
-    button {
-      margin-top: 15px;
-      padding: 12px;
-      width: 100%;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: black;
+      .grid {
+        padding: 25px 15px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<h2>📍 Parking Locations</h2>
+<h1>Parking Locations</h1>
+<p class="subtitle">
+  View parking availability and select a location
+</p>
 
-<div class="grid" id="locations"></div>
+<div class="grid" id="locations">
+  <p class="message">Loading parking locations...</p>
+</div>
 
 <script>
-/* ======================================
-   CONFIG
-====================================== */
+const BACKEND_URL =
+  "https://script.google.com/macros/s/AKfycbw7Qsf826aVnhxWi7Vu61rUer0Dp9Od4yvd4WTugq1EEjiAIfv-SndDIfzTdmbJkIdl3w/exec";
 
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwLmApnYXq3_ayIB9AsRG9le-HXu4Fl62bXK3ySXnqoikhxGSz9lhsxREz83qjUtrp5KAKEH-o4vL7/pub?output=csv";
-
-/*
-  Sheet structure:
-  Row 1 → headers
-  Row 2+ → locations
-*/
-
-/* ======================================
-   LOAD ALL LOCATIONS
-====================================== */
-
-function loadLocations() {
-  fetch(CSV_URL + "&t=" + Date.now())
-    .then(res => res.text())
-    .then(csv => {
-      const rows = csv.trim().split("\n");
-      if (rows.length < 2) return;
-
-      const container = document.getElementById("locations");
-      container.innerHTML = "";
-
-      // Start from row 2 (index 1)
-      for (let i = 1; i < rows.length; i++) {
-        const cells = rows[i].split(",");
-        const place = cells[0];
-        const slots = cells.slice(1);
-
-        let available = 0;
-        let occupied = 0;
-
-        slots.forEach(s => {
-          if (s === "FILLED") occupied++;
-          else available++;
-        });
-
-        renderCard(place, slots.length, available, occupied, i + 1);
-      }
-    })
-    .catch(err => console.error("CSV error:", err));
-}
-
-/* ======================================
-   RENDER LOCATION CARD
-====================================== */
-
-function renderCard(place, total, free, busy, rowNumber) {
+async function loadLocations() {
   const container = document.getElementById("locations");
 
-  const div = document.createElement("div");
-  div.className = "card";
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}?action=getLocations&t=${Date.now()}`
+    );
 
-  div.innerHTML = `
-    <h3>${place}</h3>
-    <p>Total Slots: <b>${total}</b></p>
-    <p class="available">Available: ${free}</p>
-    <p class="occupied">Occupied: ${busy}</p>
-    <button onclick="openBooking(${rowNumber})">View & Book</button>
-  `;
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
 
-  container.appendChild(div);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(
+        data.error || "Unable to load parking locations."
+      );
+    }
+
+    container.innerHTML = "";
+
+    if (data.locations.length === 0) {
+      container.innerHTML =
+        '<p class="message">No parking locations available.</p>';
+      return;
+    }
+
+    data.locations.forEach(location => {
+      renderLocationCard(location);
+    });
+  } catch (error) {
+    console.error("Failed to load parking locations:", error);
+
+    container.innerHTML =
+      '<p class="message">Unable to load parking locations. Please try again later.</p>';
+  }
 }
 
-/* ======================================
-   OPEN BOOKING PAGE
-====================================== */
+function renderLocationCard(location) {
+  const container = document.getElementById("locations");
 
-function openBooking(row) {
-  localStorage.setItem("selectedRow", row);
+  const card = document.createElement("div");
+  card.className = "card";
+
+  card.innerHTML = `
+    <h3>${location.locationName}</h3>
+    <p>Total Slots: <b>${location.totalSlots}</b></p>
+    <p class="available">
+      Available: ${location.available}
+    </p>
+    <p class="occupied">
+      Occupied: ${location.occupied}
+    </p>
+    <p class="reserved">
+      Reserved: ${location.reserved}
+    </p>
+    <button
+      type="button"
+      onclick="openLocation('${location.locationId}')"
+    >
+      View Parking Slots
+    </button>
+  `;
+
+  container.appendChild(card);
+}
+
+function openLocation(locationId) {
+  localStorage.setItem(
+    "selectedLocationId",
+    locationId
+  );
+
   window.location.href = "index.html";
 }
 
-/* ======================================
-   INIT
-====================================== */
-
 loadLocations();
-setInterval(loadLocations, 15000); // auto-refresh
+
+setInterval(
+  loadLocations,
+  15000
+);
 </script>
 
 </body>
