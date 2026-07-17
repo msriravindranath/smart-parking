@@ -451,6 +451,28 @@ The repository contains the reconstructed and refined project source code. Hardw
 - **Project Website:**  https://sites.google.com/view/smartpark-iot/home
 - **Smart Parking Dashboard:** https://msriravindranath.github.io/smart-parking/
 
+## Screenshots
+
+### Landing Page
+
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\Home-page.png"
+
+### Dashboard
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\Home-page 2.png"
+
+
+### Locations
+
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\Location selection page .png"
+
+### Live Database
+
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\Location selection page .png"
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\slot availability .png"
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\slot Booking Stage .png"
+"C:\Users\M Sri Ravindranath\OneDrive\文件\Desktop\docs\Slot Reserved .png"
+
+
 ## Author
 
 M. Sree Ravindranath
